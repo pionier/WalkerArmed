@@ -67,11 +67,12 @@ function WalkerArmed(){
 	
 	const TRI_BUFFER_SIZE = 4096,
 			WalkerBody_SCALE = 1,
-			SIGHT_LENGTH = 3*2,
+			SIGHT_LENGTH = 3*3,
 			SIGHT_HEIGHT = 2,
 			VELOCITY = 0.01,
 			ROT_RATE = 0.003;
-	const	walkerInitRot = [ 0,0,0,0.15,0.80,0 ];
+//	const	walkerInitRot = [ 0,0,0,0.15,0.80,0 ];
+	const	walkerInitRot = [ 0,0,0,0,0,0 ];
 	const	walkerInitPos = [ 0,1.2,0,3 ];
 	let floorPos = [ 0, 0, 0 ];
 	
@@ -96,8 +97,8 @@ function WalkerArmed(){
 	cnvs.height = 384;
 	
 	// キーイベント
-	let keyStatus = [ false, false, false, false, false, false, false, false, false ];
-	let keyBackup = [ false, false, false, false, false, false, false, false, false ];
+	let keyStatus = [ false, false, false, false, false, false, false, false, false, false, false, false, false, false ];
+	let keyBackup = [ false, false, false, false, false, false, false, false, false, false, false, false, false, false ];
 	if( window.addEventListener ){
 		function KeyDownFunc( evt ){
 			"use strict";
@@ -129,6 +130,11 @@ function WalkerArmed(){
 			if( keyname === keyEventNames.keyR ){
 				keyStatus[8] = true;
 			}
+			if( keyname === keyEventNames.keyP	){ keyStatus[ 9] = true; } else 
+			if( keyname === keyEventNames.keyA	){ keyStatus[10] = true; } else 
+			if( keyname === keyEventNames.keyS	){ keyStatus[11] = true; } else 
+			if( keyname === keyEventNames.keyH	){ keyStatus[12] = true; } else 
+			if( keyname === keyEventNames.keyT	){ keyStatus[13] = true; }
 		}
 		
 		function KeyUpFunc( evt ){
@@ -161,6 +167,11 @@ function WalkerArmed(){
 			if( keyname === keyEventNames.keyR ){
 				keyStatus[8] = false;
 			}
+			if( keyname === keyEventNames.keyP	){ keyStatus[ 9] = false; } else
+			if( keyname === keyEventNames.keyA	){ keyStatus[10] = false; } else 
+			if( keyname === keyEventNames.keyS	){ keyStatus[11] = false; } else 
+			if( keyname === keyEventNames.keyH	){ keyStatus[12] = false; } else 
+			if( keyname === keyEventNames.keyT	){ keyStatus[13] = false; }
 		}
 		// ドキュメントにリスナーを登録
 		document.addEventListener( "keydown", KeyDownFunc, false );
@@ -326,6 +337,11 @@ function WalkerArmed(){
 		LftLegPosH:	[
 			[ 1.5, -0.5, 1.1-stdLPZ, 1.5-stdLPX ], [ -1.5, -0.5, 1.1+stdLPZ, 1.5-stdLPX ], [ 1.5, -0.5, -1.1-stdLPZ, 1.5+stdLPX ], [ -1.5, -0.5, -1.1+stdLPZ, 1.5+stdLPX ],
 			[ 1.5, -0.5, 1.1-stdLPZ,-1.5-stdLPX ], [ -1.5, -0.5, 1.1+stdLPZ,-1.5-stdLPX ], [ 1.5, -0.5, -1.1-stdLPZ,-1.5+stdLPX ], [ -1.5, -0.5, -1.1+stdLPZ,-1.5+stdLPX ]
+		],
+		// 足の根元の先端位置
+		StdLegBasePos: [
+			[ 0.5, 0.4, 0, 0.5 ], [ -0.5, 0.4, 0, 0.5 ], [ 0.5, 0.4, -0, 0.5 ], [ -0.5, 0.4, -0, 0.5 ],
+			[ 0.5, 0.4, 0,-0.5 ], [ -0.5, 0.4, 0,-0.5 ], [ 0.5, 0.4, -0,-0.5 ], [ -0.5, 0.4, -0,-0.5 ]
 		],
 		
 		// 各脚へのコマンド発行
@@ -651,6 +667,7 @@ function WalkerArmed(){
 		this.brain = brain;
 		this.rot = rotate;
 		this.basePos = [ 0,0,0,0 ];							// 常に0
+		this.legBasePos = brain.StdLegBasePos[legNo].concat();	// 足の付根の先端位置
 		this.anklePos = [ brain.StdLegPos[legNo].concat() ];	// basePosからの相対位置
 		this.kneePos = [ 0,0,0,0 ];							// basePosからの相対位置
 		this.rotate = [ 0,0,0,0,0,0 ];						// LegSet全体の回転角
@@ -663,6 +680,45 @@ function WalkerArmed(){
 		this.Base  = new fDWL.D4D.Sphere4D( gl, [ 0,0,0,0 ], [ 0,0,0,0,0,0 ], 8, 8, 0.2, [ 0.8, 0.8, 1.0, 1.0 ], shader );
 		this.Knee  = new fDWL.D4D.Sphere4D( gl, [ 0,0,0,0 ], [ 0,0,0,0,0,0 ], 8, 8, 0.2, [ 0.8, 0.8, 1.0, 1.0 ], shader );
 		this.Ankle = new fDWL.D4D.Sphere4D( gl, [ 0,0,0,0 ], [ 0,0,0,0,0,0 ], 8, 8, 0.2, [ 0.8, 0.8, 1.0, 1.0 ], shader );
+		this.LegBase = new fDWL.R4D.Pylams4D(
+			gl,
+			shader.prg,
+			[ 0,0,0,0 ],									// pos
+			[ 0,0,0,0,0,0 ],								// rotate
+			[ 1,1,1,1 ],
+			[ // Vertice
+				-0.1,  0.7, 0.1,  0.1,   0.1,  0.7, 0.1,  0.1,   -0.1,  0.7, -0.1,  0.1,    0.1,  0.7, -0.1,  0.1,
+				 0.1, -0.7, 0.1,  0.1,  -0.1, -0.7, 0.1,  0.1,    0.1, -0.7, -0.1,  0.1,   -0.1, -0.7, -0.1,  0.1,
+				-0.1,  0.7, 0.1, -0.1,   0.1,  0.7, 0.1, -0.1,   -0.1,  0.7, -0.1, -0.1,    0.1,  0.7, -0.1, -0.1,
+				 0.1, -0.7, 0.1, -0.1,  -0.1, -0.7, 0.1, -0.1,    0.1, -0.7, -0.1, -0.1,   -0.1, -0.7, -0.1, -0.1
+				//,0, -1, 0, 0,  0, 1, 0, 0
+			],
+			// color
+			[ 192, 192, 192, 255 ],
+			// center
+			[ 0, 0, 0, 0 ],
+			[	// index of Pylamids
+				 0, 1, 2, 5,  1, 2, 3, 6,   4, 5, 6, 1,   5, 6, 7, 2,   1, 2, 5, 6,		// こっち(h=+1)
+				 8, 9,10,13,  9,10,11,14,  12,13,14, 9,  13,14,15,10,   9,10,13,14,		// あっち(h=-1)
+				 9, 1,11,12,  1,11, 3, 6,   4,12, 6, 1,  11, 6,12,14,   1,11, 6,12,		// 右(X=+1)
+				 0, 8, 2, 5,  8, 2,10,15,   5,13,15, 8,   5, 7,15, 2,   2, 8, 5,15,		// 左(X=-1)
+				 0, 1, 8, 5,  1, 8, 9,12,   5, 4,12, 1,   5,12,13, 8,   1, 8, 5,12,		// 上(Y=+1)
+				 2,10,11,15,  2, 3,11, 6,  15,14, 6,11,  15, 6, 7, 2,   2,11, 6,15,		// 下(Y=-1)
+			],
+			[	// chrnIdx: 各五胞体の構成頂点index
+				// 元無し
+			],
+			[	// centIdx
+				0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 
+				0,0,0,0,0, 0,0,0,0,0
+			],
+			[	// color index of pylamid
+				0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 
+				0,0,0,0,0, 0,0,0,0,0
+			],
+			[ 0, 0.7, 0, 0 ],				// offs: vertex生成時位置オフセット
+			[ 0, 0, 0, 0, 0, 0 ]		// rot:  vertex生成時回転
+		);
 		this.UpperLeg = new fDWL.R4D.Pylams4D(
 			gl,
 			shader.prg,
@@ -782,6 +838,7 @@ function WalkerArmed(){
 			[ 0, 0, 0, 0, 0, 0 ]		// rot:  vertex生成時回転
 		);		
 		// 足の長さを指定
+		this.LegBase.legLen = 1.0;
 		this.UpperLeg.legLen = 2.0;
 		this.LowerLeg.legLen = 2.0;
 		
@@ -790,6 +847,9 @@ function WalkerArmed(){
 		
 		initParts:	function( primBuffer ){
 			// シェーディングルーチン選択
+			this.LegBase.setTriangle = this.LegBase.setTriangleFlat;
+			this.LegBase.getNormal = this.LegBase.getNormalPlane;
+			this.LegBase.getColor = this.LegBase.getColorPlane;
 			this.UpperLeg.setTriangle = this.UpperLeg.setTriangleFlat;
 			this.UpperLeg.getNormal = this.UpperLeg.getNormalPlane;
 			this.UpperLeg.getColor = this.UpperLeg.getColorPlane;
@@ -804,6 +864,8 @@ function WalkerArmed(){
 			this.srcPos = this.brain.StdLegPos[this.id];
 			this.anklePos = this.targetPos.concat();
 			// 初期化変換
+			this.LegBase.transform();
+			this.LegBase.setTriBuffer( primBuffer );
 			this.UpperLeg.transform();
 			this.UpperLeg.setTriBuffer( primBuffer );
 			this.LowerLeg.transform();
@@ -857,10 +919,13 @@ function WalkerArmed(){
 			// 膝位置
 			this.kneePos  = this.calcKneePos();
 			
+			let rotBase = this.calcRotate( this.basePos,  this.legBasePos, wkrRot );
 			let rotUpper = this.calcRotate( this.basePos,  this.anklePos, wkrRot );
 			let rotLower = rotUpper.concat();
+			rotBase[1] = -this.calcRotateYZ( this.basePos,  this.legBasePos, this.LegBase.legLen );
 			rotUpper[1] =  this.calcRotateYZ( this.basePos,  this.kneePos, this.UpperLeg.legLen );
 			rotLower[1] = -this.calcRotateYZ( this.anklePos, this.kneePos, this.LowerLeg.legLen );
+			this.LegBase.setRotate( rotBase );
 			this.UpperLeg.setRotate( rotUpper );
 			this.LowerLeg.setRotate( rotLower );
 			
@@ -870,6 +935,7 @@ function WalkerArmed(){
 			// base
 			let basePos = this.pos.concat();
 			this.Base.setPos( basePos );
+			this.LegBase.setPos( basePos );
 			this.UpperLeg.setPos( basePos );
 			// ankle
 			let anklePos = fDWL.add4D( wkrMtx.mulVec( this.anklePos[0], this.anklePos[1], this.anklePos[2], this.anklePos[3] ), basePos );
@@ -1005,6 +1071,8 @@ function WalkerArmed(){
 			// 描画
 			if( isRedraw ){
 				
+				this.LegBase.transform( wkrMtx );
+				this.LegBase.dividePylams( hPos );
 				this.UpperLeg.transform( wkrMtx );
 				this.UpperLeg.dividePylams( hPos );
 				this.LowerLeg.transform( wkrMtx );
@@ -1021,27 +1089,384 @@ function WalkerArmed(){
 		},
 	}
 	
-	// 
-	let WalkerOne = function( gl, pos, rotate, shader, brain ){
-		this.pos = pos;
+	const CmdPrep	= CmdLgEnd+1;			// 攻撃準備
+	const CmdSlash	= CmdPrep+1;			// 攻撃
+	const CmdReturn	= CmdSlash+1;			// 基準位置復帰
+	const CmdWaitSlash = CmdReturn+1;		// 攻撃待機
+	const CmdWaitReturn = CmdWaitSlash+1;	// 基準位置復帰待機(不使用)
+	const AttackSweap	= 0;
+	const AttackSlash	= AttackSweap+1;
+	const AttackHook	= AttackSlash+1;
+	const AttackThrust	= AttackHook+1;
+	// 剣の角度
+	const MaxSwordAngle	= Math.PI/3;
+	let ArmBrain = {
+		
+		// コマンド
+		Command:	CmdNop,
+		
+		// 攻撃種別
+		AttackType:	0/*AttackThrust*/,
+		
+		// 動作カウンタ
+		ActCounter:	0,
+		
+		// 動作カウンタの現最大値:動作に拠って異なる
+		MaxCounter:	60,
+		
+		// 手に対する剣の角度
+		SwordAngle:	0,
+		
+		// 手の基準位置
+		StdArmPos:	[ [ 0, 0.5, 1.5, 0 ], [ 2.0, 0.5, 1.1, 0 ], [ -2.0, 0.5, 1.1, 0 ], [ 0, 0.5, 1.1, 0 ], [ 0, 0.5, 2.5, 0 ] ],
+		
+		getHandPos: function( defaultPos ){
+			if(( this.Command === CmdNop )||( this.Command === CmdWaitSlash )||( this.Command === CmdWaitReturn )){
+				if( this.Command == CmdNop ){
+					return this.StdArmPos[0];
+				}
+				return defaultPos;
+			}
+			this.ActCounter++;
+			if( this.ActCounter >= this.MaxCounter ){
+				this.ActCounter = 0;
+				
+				switch(this.Command){
+				default:
+				case CmdNop:
+					this.Command = CmdPrep;
+					break;
+				case CmdPrep:
+					this.Command = CmdWaitSlash;
+					break;
+				case CmdSlash:
+					this.Command = CmdWaitReturn;
+					break;
+				case CmdReturn:
+					this.Command = CmdNop;
+					break;
+				case CmdWaitSlash:
+				case CmdWaitReturn:
+					break;
+				}
+			}
+			
+			// CommandとAttackTypeから配列位置を設定
+			let srcIdx = 0;
+			let dstIdx = 0;
+			if( this.Command != CmdNop ){
+				if( this.Command == CmdPrep ){
+					// CmdPrep:1
+					srcIdx += 0;
+					dstIdx += 1;
+					if( this.AttackType == AttackThrust ){
+						srcIdx = 0;
+						dstIdx = 3;
+					}
+				}else
+				if( this.Command == CmdSlash ){
+					// CmdSlash:2
+					srcIdx += 1;
+					dstIdx += 2;
+					if( this.AttackType == AttackThrust ){
+						srcIdx = 3;
+						dstIdx = 4;
+					}
+				}else
+				if( this.Command == CmdReturn ){
+					// CmdReturn:3
+					srcIdx += 2;
+					dstIdx += 0;
+					if( this.AttackType == AttackThrust ){
+						srcIdx = 4;
+						dstIdx = 0;
+					}
+				}else{
+					return defaultPos;
+				}
+			}
+			const srcPos = this.StdArmPos[srcIdx];
+			const dstPos = this.StdArmPos[dstIdx];
+			
+			let handPos = this.StdArmPos[this.AttackType].concat();
+			if( this.Command !=  CmdNop ){
+				const rate = this.ActCounter/this.MaxCounter;
+				
+				if(( this.Command == CmdSlash )&&( this.AttackType != AttackThrust )){
+					// 斬撃は回転だが、線形補間から長さ修正をして算出
+					const lerpPos = fDWL.lerp4( srcPos, dstPos, rate );
+					let   tempPos = lerpPos.concat();
+					tempPos[1] = 0;
+					let   lengPos = srcPos.concat();
+					lengPos[1] = 0;
+					const leng2 = fDWL.inProd4D( lengPos, lengPos );
+					const leng  = Math.sqrt( leng2 );
+					handPos = fDWL.normalize4( tempPos );
+					handPos[0] *= leng;
+					handPos[1]  = lerpPos[1];
+					handPos[2] *= leng;
+					handPos[3] = 0;
+				}else{
+					// 斬撃以外は線形補間
+					handPos = fDWL.lerp4( srcPos, dstPos, rate );
+				}
+				// 剣の角度の調整
+				if( this.AttackType == AttackThrust ){
+					this.SwordAngle = 0;
+				}else
+				if( this.Command == CmdPrep ){
+					if( this.AttackType == AttackSlash ){
+						this.SwordAngle = rate*MaxSwordAngle;
+					}else
+					if( this.AttackType == AttackHook ){
+						this.SwordAngle = -rate*MaxSwordAngle;
+					}
+				}else
+				if( this.Command == CmdSlash ){
+					if( this.AttackType == AttackSlash ){
+						this.SwordAngle = MaxSwordAngle;
+					}else
+					if( this.AttackType == AttackHook ){
+						this.SwordAngle = -MaxSwordAngle;
+					}
+				}else
+				if( this.Command == CmdReturn ){
+					if( this.AttackType == AttackSlash ){
+						this.SwordAngle = (1-rate)*MaxSwordAngle;
+					}else
+					if( this.AttackType == AttackHook ){
+						this.SwordAngle = -(1-rate)*MaxSwordAngle;
+					}
+				}
+				
+			}
+			return handPos;
+		},
+		
+		getSwordAngle: function(){
+			return this.SwordAngle;
+		},
+		
+		// コマンド受付
+		setSweap: function(){
+			
+			// 一時的処理
+			if( this.Command == CmdWaitSlash ){
+				this.Command = CmdSlash;
+				return;
+			}else
+			if( this.Command == CmdWaitReturn ){
+				this.Command = CmdReturn;
+				return;
+			}
+			
+			this.Command = CmdPrep;
+			this.AttackType = AttackSweap;
+		},
+		setSlash: function(){
+		
+			// 一時的処理
+			if( this.Command == CmdWaitSlash ){
+				this.Command = CmdSlash;
+				return;
+			}else
+			if( this.Command == CmdWaitReturn ){
+				this.Command = CmdReturn;
+				return;
+			}
+			
+			this.Command = CmdPrep;
+			this.AttackType = AttackSlash;
+		},
+		setHook: function(){
+			
+			// 一時的処理
+			if( this.Command == CmdWaitSlash ){
+				this.Command = CmdSlash;
+				return;
+			}else
+			if( this.Command == CmdWaitReturn ){
+				this.Command = CmdReturn;
+				return;
+			}
+			
+			this.Command = CmdPrep;
+			this.AttackType = AttackHook;
+		},
+		setThrust: function(){
+			
+			// 一時的処理
+			if( this.Command == CmdWaitSlash ){
+				this.Command = CmdSlash;
+				return;
+			}else
+			if( this.Command == CmdWaitReturn ){
+				this.Command = CmdReturn;
+				return;
+			}
+			
+			this.Command = CmdPrep;
+			this.AttackType = AttackThrust;
+		},
+		// 動作実行状況を取得
+		getCommand: function(){
+			return this.Command;
+		},
+		setCommand: function( cmd ){
+			this.Command = cmd;
+		},
+	};
+	
+		// 手と足の強調動作
+	const RETREAT_DISTANCE = 2;
+	const RETREAT_DISTANCE2 = RETREAT_DISTANCE*RETREAT_DISTANCE;
+	let HormonicalMove = {
+		
+		Command:	CmdNop,
+		
+		CurrentPos:	[ 0,0,0,0 ],
+		
+		StartPos:	[ 0,0,0,0 ],
+		
+		setStartPos:	function ( pos ){
+			StartPos = pos.concat();
+		},
+		
+		recordPosFlag: false,
+		
+		// 手足の状況を調べる
+		listenAMBAC:	function( pos ){
+			// 位置記録
+			this.CurrentPos = pos;
+			if( this.recordPosFlag ){
+				this.recordPosFlag = false;
+				this.StartPos = pos;
+			}
+			
+			// 手足と自分の状態から行動を決める
+			const legCmd = LegBrain.getCommand();
+			const armCmd = ArmBrain.getCommand();
+			if( this.Command === CmdNop ){
+				return;
+			}
+			if( this.Command === CmdPrep ){
+				// 攻撃準備
+				if(( legCmd === CmdNop )&&( armCmd === CmdWaitSlash )){
+					// 攻撃準備終了＝斬撃開始
+					ArmBrain.setCommand( CmdSlash );
+				}else
+				// 後退途中
+				if( legCmd === CmdMvBack ){
+					// 後退距離を調べる
+					const dif = [
+						this.StartPos[0]-this.CurrentPos[0], this.StartPos[1]-this.CurrentPos[1], this.StartPos[2]-this.CurrentPos[2], this.StartPos[3]-this.CurrentPos[3]
+					];
+					const dst = fDWL.inProd4D( dif, dif );
+					if( dst >= RETREAT_DISTANCE2 ){
+						LegBrain.rcvCmd( CmdMvStop, 4 );	// 後退終了
+						this.Command = CmdSlash;
+					}
+				}
+			}else
+			if( this.Command === CmdSlash ){
+				// 斬撃
+				if(( legCmd === CmdNop )&&( armCmd === CmdWaitSlash )){
+					ArmBrain.setCommand( CmdSlash );
+				}else
+				if(( legCmd === CmdNop )&&( armCmd === CmdWaitReturn )){
+					// 斬撃終了＝復帰動作開始
+					this.Command = CmdReturn;
+					ArmBrain.setCommand( CmdReturn );
+					LegBrain.rcvCmd( CmdMvFwd, 4 );	// 前進開始
+					this.StartPos = pos;
+				}
+			}else
+			if( this.Command === CmdReturn ){
+				// 復帰動作
+				if(( legCmd === CmdNop )&&( armCmd === CmdNop )){
+					// 復帰終了
+					this.Command = CmdNop;
+				}else
+				// 前進途中
+				if( legCmd === CmdMvFwd ){
+					// 前進距離を調べる
+					const dif = [
+						this.StartPos[0]-this.CurrentPos[0], this.StartPos[1]-this.CurrentPos[1], this.StartPos[2]-this.CurrentPos[2], this.StartPos[3]-this.CurrentPos[3]
+					];
+					const dst = fDWL.inProd3D( dif, dif );
+					if( dst >= RETREAT_DISTANCE2 ){
+						LegBrain.rcvCmd( CmdMvStop, 4 );	// 前進終了
+					}
+				}
+			}
+		},
+		
+		// 手動による攻撃トリガー
+		goAttack:	function(){
+			this.Command = CmdPrep;
+			this.recordPosFlag = true;
+			LegBrain.rcvCmd( CmdMvBack, 4 );	// 後退開始
+		},
+		
+		goSweap:	function(){
+			if( this.Command === CmdNop ){
+				this.goAttack();
+				ArmBrain.setSweap();
+			}
+		},
+		goSlash:	function(){
+			if( this.Command === CmdNop ){
+				this.goAttack();
+				ArmBrain.setSlash();
+			}
+		},
+		goHook:		function(){
+			if( this.Command === CmdNop ){
+				this.goAttack();
+				ArmBrain.setHook();
+			}
+		},
+		goThrust:	function(){
+			if( this.Command === CmdNop ){
+				this.goAttack();
+				ArmBrain.setThrust();
+			}
+		},
+		
+	};
+	
+	// Sword/Arm of Walkers
+	let ArmSet = function( pos, rotate, shader, brain ){
+		this.pos = pos.concat();							// ArnSet全体の4次元座標
 		this.rot = rotate;
-		this.scale = [ 1,1,1,1 ];
+		this.basePos = [ 0,0,0,0 ];							// 常に0
+		this.armBasePos = [ 0, 0.2, 0.5, 0 ];				// 腕の付根の先端位置
+		this.wristPos = [ 0, 0.5, 2, 0 ];						// basePosからの相対位置
+		this.elbowPos = [ 0,0,0,0 ];						// basePosからの相対位置
+		this.rotate = [ 0,0,0,0,0,0 ];						// ArmSet全体の回転角
+		this.scale = [ 1,1,1,0 ];
 		this.shader = shader;
-		this.localMtx = new fDWL.R4D.Matrix4();
+		this.State = StateW;								// 脚の移動モード(State)
+		this.targetPos = [ 0,0.5,2,0 ];
+		this.srcPos = [ 0,0,0, ];
+		this.distance = 0;					// this.targetPosとthis.srcPosの距離
 		this.brain = brain;
 		
-		// 胴体部分
-		this.Body = new fDWL.R4D.Pylams4D(
+		this.Base  = new fDWL.D4D.Sphere4D( gl, [ 0,0,0,0 ], [ 0,0,0,0,0,0 ], 8, 8, 0.2, [ 1.0, 0.8, 0.8, 1.0 ], shader );
+		this.Elbow  = new fDWL.D4D.Sphere4D( gl, [ 0,0,0,0 ], [ 0,0,0,0,0,0 ], 8, 8, 0.2, [ 1.0, 0.8, 0.8, 1.0 ], shader );
+		this.Wrist = new fDWL.D4D.Sphere4D( gl, [ 0,0,0,0 ], [ 0,0,0,0,0,0 ], 8, 8, 0.2, [ 1.0, 0.8, 0.8, 1.0 ], shader );
+		this.ArmBase = new fDWL.R4D.Pylams4D(
 			gl,
 			shader.prg,
-			[ 0, 0, 0, 0 ],			// pos
-			this.rot.concat(),									// rotate
-			[ WalkerBody_SCALE, WalkerBody_SCALE, WalkerBody_SCALE, WalkerBody_SCALE ],
+			[ 0,0,0,0 ],									// pos
+			[ 0,0,0,0,0,0 ],								// rotate
+			[ 1,1,1,1 ],
 			[ // Vertice
-				-0.5, 0.5,  0.5,  0.5,   0.5, 0.5,  0.5,  0.5,   -0.5, -0.5,  0.5,  0.5,    0.5, -0.5,  0.5,  0.5,
-				 0.5, 0.5, -0.5,  0.5,  -0.5, 0.5, -0.5,  0.5,    0.5, -0.5, -0.5,  0.5,   -0.5, -0.5, -0.5,  0.5,
-				-0.5, 0.5,  0.5, -0.5,   0.5, 0.5,  0.5, -0.5,   -0.5, -0.5,  0.5, -0.5,    0.5, -0.5,  0.5, -0.5,
-				 0.5, 0.5, -0.5, -0.5,  -0.5, 0.5, -0.5, -0.5,    0.5, -0.5, -0.5, -0.5,   -0.5, -0.5, -0.5, -0.5
+				-0.1,  0.7, 0.1,  0.1,   0.1,  0.7, 0.1,  0.1,   -0.1,  0.7, -0.1,  0.1,    0.1,  0.7, -0.1,  0.1,
+				 0.1, -0.7, 0.1,  0.1,  -0.1, -0.7, 0.1,  0.1,    0.1, -0.7, -0.1,  0.1,   -0.1, -0.7, -0.1,  0.1,
+				-0.1,  0.7, 0.1, -0.1,   0.1,  0.7, 0.1, -0.1,   -0.1,  0.7, -0.1, -0.1,    0.1,  0.7, -0.1, -0.1,
+				 0.1, -0.7, 0.1, -0.1,  -0.1, -0.7, 0.1, -0.1,    0.1, -0.7, -0.1, -0.1,   -0.1, -0.7, -0.1, -0.1
+				//,0, -1, 0, 0,  0, 1, 0, 0
 			],
 			// color
 			[ 192, 192, 192, 255 ],
@@ -1054,17 +1479,408 @@ function WalkerArmed(){
 				 0, 8, 2, 5,  8, 2,10,15,   5,13,15, 8,   5, 7,15, 2,   2, 8, 5,15,		// 左(X=-1)
 				 0, 1, 8, 5,  1, 8, 9,12,   5, 4,12, 1,   5,12,13, 8,   1, 8, 5,12,		// 上(Y=+1)
 				 2,10,11,15,  2, 3,11, 6,  15,14, 6,11,  15, 6, 7, 2,   2,11, 6,15,		// 下(Y=-1)
-				 0, 1, 2, 8,  1, 2, 3,11,   8, 9,11, 1,   8,11,10, 2,   1, 2, 8,11,		// 手前(Z=+1)
-				13,12,15, 5, 12,15,14, 6,   5, 4, 6,12,   5, 6, 7,15,  12,15, 5, 6		// 奥(Z=-1)
 			],
 			[	// chrnIdx: 各五胞体の構成頂点index
 				// 元無し
 			],
 			[	// centIdx
 				0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 
+				0,0,0,0,0, 0,0,0,0,0
+			],
+			[	// color index of pylamid
+				0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 
+				0,0,0,0,0, 0,0,0,0,0
+			],
+			[ 0, 0.7, 0, 0 ],				// offs: vertex生成時位置オフセット
+			[ 0, 0, 0, 0, 0, 0 ]		// rot:  vertex生成時回転
+		);
+		this.UpperArm = new fDWL.R4D.Pylams4D(
+			gl,
+			shader.prg,
+			[ 0,0,0,0 ],									// pos
+			[ 0,0,0,0,0,0 ],								// rotate
+			[ 1,0.75,1,1 ],
+			[ // Vertice
+				-0.1,  1, 0.1,  0.1,   0.1,  1, 0.1,  0.1,   -0.1,  1, -0.1,  0.1,    0.1,  1, -0.1,  0.1,
+				 0.1, -1, 0.1,  0.1,  -0.1, -1, 0.1,  0.1,    0.1, -1, -0.1,  0.1,   -0.1, -1, -0.1,  0.1,
+				-0.1,  1, 0.1, -0.1,   0.1,  1, 0.1, -0.1,   -0.1,  1, -0.1, -0.1,    0.1,  1, -0.1, -0.1,
+				 0.1, -1, 0.1, -0.1,  -0.1, -1, 0.1, -0.1,    0.1, -1, -0.1, -0.1,   -0.1, -1, -0.1, -0.1
+				//,0, -1, 0, 0,  0, 1, 0, 0
+			],
+			// color
+			[ 192, 192, 192, 255 ],
+			// center
+			[ 0, 0, 0, 0 ],
+			[	// index of Pylamids
+				 0, 1, 2, 5,  1, 2, 3, 6,   4, 5, 6, 1,   5, 6, 7, 2,   1, 2, 5, 6,		// こっち(h=+1)
+				 8, 9,10,13,  9,10,11,14,  12,13,14, 9,  13,14,15,10,   9,10,13,14,		// あっち(h=-1)
+				 9, 1,11,12,  1,11, 3, 6,   4,12, 6, 1,  11, 6,12,14,   1,11, 6,12,		// 右(X=+1)
+				 0, 8, 2, 5,  8, 2,10,15,   5,13,15, 8,   5, 7,15, 2,   2, 8, 5,15,		// 左(X=-1)
+				 0, 1, 8, 5,  1, 8, 9,12,   5, 4,12, 1,   5,12,13, 8,   1, 8, 5,12,		// 上(Y=+1)
+				 2,10,11,15,  2, 3,11, 6,  15,14, 6,11,  15, 6, 7, 2,   2,11, 6,15,		// 下(Y=-1)
+			],
+			[	// chrnIdx: 各五胞体の構成頂点index
+				// 元無し
+			],
+			[	// centIdx
+				0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 
+				0,0,0,0,0, 0,0,0,0,0
+			],
+			[	// color index of pylamid
+				0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 
+				0,0,0,0,0, 0,0,0,0,0
+			],
+			[ 0, 0.75, 0, 0 ],				// offs: vertex生成時位置オフセット
+			[ 0, 0, 0, 0, 0, 0 ]		// rot:  vertex生成時回転
+		);
+		this.LowerArm = new fDWL.R4D.Pylams4D(
+			gl,
+			shader.prg,
+			[ 0, 0, 0, 0 ],								// pos
+			[ 0,0,0,0,0,0 ],							// rotate
+			[ 1, 0.75, 1, 1 ],
+			[ // Vertice
+				-0.1,  1, 0.1,  0.1,   0.1,  1, 0.1,  0.1,   -0.1,  1, -0.1,  0.1,    0.1,  1, -0.1,  0.1,
+				 0.1, -1, 0.1,  0.1,  -0.1, -1, 0.1,  0.1,    0.1, -1, -0.1,  0.1,   -0.1, -1, -0.1,  0.1,
+				-0.1,  1, 0.1, -0.1,   0.1,  1, 0.1, -0.1,   -0.1,  1, -0.1, -0.1,    0.1,  1, -0.1, -0.1,
+				 0.1, -1, 0.1, -0.1,  -0.1, -1, 0.1, -0.1,    0.1, -1, -0.1, -0.1,   -0.1, -1, -0.1, -0.1
+				//,0, -1, 0, 0,  0, 1, 0, 0
+			],
+			// color
+			[ 192, 192, 192, 255 ],
+			// center
+			[ 0, 0, 0, 0 ],
+			[	// index of Pylamids
+				 0, 1, 2, 5,  1, 2, 3, 6,   4, 5, 6, 1,   5, 6, 7, 2,   1, 2, 5, 6,		// こっち(h=+1)
+				 8, 9,10,13,  9,10,11,14,  12,13,14, 9,  13,14,15,10,   9,10,13,14,		// あっち(h=-1)
+				 9, 1,11,12,  1,11, 3, 6,   4,12, 6, 1,  11, 6,12,14,   1,11, 6,12,		// 右(X=+1)
+				 0, 8, 2, 5,  8, 2,10,15,   5,13,15, 8,   5, 7,15, 2,   2, 8, 5,15,		// 左(X=-1)
+				 0, 1, 8, 5,  1, 8, 9,12,   5, 4,12, 1,   5,12,13, 8,   1, 8, 5,12,		// 上(Y=+1)
+				 2,10,11,15,  2, 3,11, 6,  15,14, 6,11,  15, 6, 7, 2,   2,11, 6,15,		// 下(Y=-1)
+			],
+			[	// chrnIdx: 各五胞体の構成頂点index
+				// 元無し
+			],
+			[	// centIdx
+				0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 
+				0,0,0,0,0, 0,0,0,0,0
+			],
+			[	// color index of pylamid
+				0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 
+				0,0,0,0,0, 0,0,0,0,0
+			],
+			[ 0, 0.75, 0, 0 ],				// offs: vertex生成時位置オフセット
+			[ 0, 0, 0, 0, 0, 0 ]		// rot:  vertex生成時回転
+		);		
+		this.Hand = new fDWL.R4D.Pylams4D(
+			gl,
+			shader.prg,
+			[ 0, 0, 0, 0 ],								// pos
+			[ 0,0,0,0,0,0 ],							// rotate
+			[ 1, 1, 1, 1 ],
+			[ // Vertice
+				 0.0, 0.0, -0.5,  0.3,   0.3, 0.0, -0.5,  0.0,    0.0,  0.0, -0.5, -0.3,   -0.3,  0.0, -0.5,  0.0,
+				 0.0, 0.0,  0.5,  0.3,   0.3, 0.0,  0.5,  0.0,    0.0,  0.0,  0.5, -0.3,   -0.3,  0.0,  0.5,  0.0,
+				 0.0, 0.1, -0.5,  0.0,   0.0, 0.1,  0.5,  0.0,    0.0, -0.1, -0.5,  0.0,    0.0, -0.1,  0.5,  0.0,
+				 0.0, 0.0,  0.8,  0.0
+			],
+			// color
+			[ 192, 128, 128, 255 ],
+			// center
+			[ 0, 0, 0, 0 ],
+			[	// index of Pylamids
+				0,3, 4, 8, 3,4, 7, 9, 3,4, 8, 9,  0,1, 4, 8, 1,4,5, 9, 1,4, 8, 9,
+				0,3, 4,10, 3,4, 7,11, 3,4,10,11,  0,1, 4,10, 1,4,5,11, 1,4,10,11,
+				2,3, 6, 8, 3,6, 7, 9, 3,6, 8, 9,  2,1, 6, 8, 1,6,5, 9, 1,6, 8, 9,
+				2,3, 6,10, 3,6, 7,11, 3,6,10,11,  2,1, 6,10, 1,6,5,11, 1,6,10,11,
+				4,5, 9,12, 5,6, 9,12, 6,7, 9,12,  4,7, 9,12,
+				4,5,11,12, 5,6,11,12, 6,7,11,12,  4,7,11,12
+			],
+			[	// chrnIdx: 各五胞体の構成頂点index
+				// 元無し
+			],
+			[	// centIdx
+				0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 
+				0,0,0,0,0, 0,0,0,0,0
+			],
+			[	// color index of pylamid
+				0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 
+				0,0,0,0,0, 0,0,0,0,0
+			],
+			[ 0, 0, 0.5, 0 ],				// offs: vertex生成時位置オフセット
+			[ 0, 0, 0, 0, 0, 0 ]		// rot:  vertex生成時回転
+		);		
+		// 腕の長さを指定
+		this.ArmBase.armLen = 1.0;
+		this.UpperArm.armLen = 1.5;
+		this.LowerArm.armLen = 1.5;
+		
+	}
+	ArmSet.prototype = {
+		
+		initParts:	function( primBuffer ){
+			// シェーディングルーチン選択
+			this.ArmBase.setTriangle = this.ArmBase.setTriangleFlat;
+			this.ArmBase.getNormal = this.ArmBase.getNormalPlane;
+			this.ArmBase.getColor = this.ArmBase.getColorPlane;
+			this.UpperArm.setTriangle = this.UpperArm.setTriangleFlat;
+			this.UpperArm.getNormal = this.UpperArm.getNormalPlane;
+			this.UpperArm.getColor = this.UpperArm.getColorPlane;
+			this.LowerArm.setTriangle = this.UpperArm.setTriangleFlat;
+			this.LowerArm.getNormal = this.UpperArm.getNormalPlane;
+			this.LowerArm.getColor = this.UpperArm.getColorPlane;
+			this.Hand.setTriangle = this.UpperArm.setTriangleFlat;
+			this.Hand.getNormal = this.UpperArm.getNormalPlane;
+			this.Hand.getColor = this.UpperArm.getColorPlane;
+			//  初期位置設定
+			this.targetPos = this.brain.StdArmPos[0];
+			this.srcPos = this.brain.StdArmPos[0];
+			this.wristPos = this.targetPos.concat();
+			// 初期化変換
+			this.ArmBase.transform();
+			this.ArmBase.setTriBuffer( primBuffer );
+			this.UpperArm.transform();
+			this.UpperArm.setTriBuffer( primBuffer );
+			this.LowerArm.transform();
+			this.LowerArm.setTriBuffer( primBuffer );
+			this.Hand.transform();
+			this.Hand.setTriBuffer( primBuffer );
+		},
+		
+		// 位置・角度等再設定
+		resetPos:	function( param ){
+			this.State = StateW;								// 脚の移動モード(State)
+			this.targetPos = this.brain.StdArmPos[this.id];
+			this.srcPos = this.brain.StdArmPos[this.id];
+		},
+		
+		setPos: function( pos ){
+			this.pos = pos;
+		},
+		
+		// 本体からのコマンド受信
+		rcvCmd: function( cmd ){
+			switch( cmd[0] ){
+			case CmdLgF:	// 脚かき動作
+				this.targetPos = [ cmd[1],cmd[2],cmd[3],cmd[4] ];
+				if(( this.State === StateW )||( this.State === StateNb )){
+					this.State = StateNf;
+				}
+				break;
+			case CmdLgB:	// 脚上げ復帰動作
+				this.targetPos = [ cmd[1],cmd[2],cmd[3],cmd[4] ];
+				if(( this.State === StateW )||( this.State === StateNf )){
+					this.State = StateNb;
+				}
+				break;
+			case CmdLgW:	// その場で待機
+				this.State = StateW;
+				break;
+			case CmdNop:
+			default:
+				break;
+			}
+		},
+		
+		// 関節位置変更実験
+		walk: function( pos, wkrMtx, wkrPos, wkrRot, dist ){
+			
+			// 基点と上腕
+			//this.basePos = [ 0,0,0,0 ];
+			// 手と下腕
+			this.wristPos = this.calcWristPos();
+			// 肘位置
+			this.elbowPos  = this.calcElbowPos();
+			
+			let rotBase = this.calcRotate( this.basePos,  this.armBasePos, wkrRot );
+			let rotUpper = this.calcRotate( this.basePos,  this.wristPos, wkrRot );
+			let rotLower = rotUpper.concat();
+			rotBase[1] = -this.calcRotateYZ( this.basePos,  this.armBasePos, this.ArmBase.armLen );
+			rotUpper[1] =  this.calcRotateYZ( this.basePos,  this.elbowPos, this.UpperArm.armLen );
+			rotLower[1] = -this.calcRotateYZ( this.wristPos, this.elbowPos, this.LowerArm.armLen );
+			this.ArmBase.setRotate( rotBase );
+			this.UpperArm.setRotate( rotUpper );
+			this.LowerArm.setRotate( rotLower );
+			
+			// 各パーツに座標・角度を設定
+			// ArmPos( = base )
+			this.pos = fDWL.add4D( wkrMtx.mulVec( pos[0], pos[1], pos[2], pos[3] ), wkrPos );
+			// base
+			let basePos = this.pos.concat();
+			this.Base.setPos( basePos );
+			this.ArmBase.setPos( basePos );
+			this.UpperArm.setPos( basePos );
+			// wrist
+			let wristPos = fDWL.add4D( wkrMtx.mulVec( this.wristPos[0], this.wristPos[1], this.wristPos[2], this.wristPos[3] ), basePos );
+			this.Wrist.setPos( wristPos );
+			this.Hand.setPos( wristPos );
+			this.LowerArm.setPos( wristPos );
+			// elbow
+			let elbowPos = fDWL.add4D( wkrMtx.mulVec( this.elbowPos[0], this.elbowPos[1], this.elbowPos[2], this.elbowPos[3] ), basePos );
+			this.Elbow.setPos( elbowPos );
+			
+/*			// 移動終了チェック
+			if(( this.wristPos[0] === this.targetPos[0] )&&( this.wristPos[1] === this.targetPos[1] )&&( this.wristPos[2] === this.targetPos[2] )&&( this.wristPos[3] === this.targetPos[3] )){
+				// 終了通知を発信
+				this.brain.rcvCmd( CmdLgEnd, this.id );
+			}
+*/
+		},
+		
+		// 手首の位置を算出：仮
+		calcWristPos: function(){
+			let wristPos = this.brain.getHandPos( this.wristPos );
+			return wristPos;
+		},
+		
+		// 肘の座標と手の傾きを計算
+		calcElbowPos: function(){
+			// まずはbasePos[1]=anklePos[1]の場合を算出
+			const L02 = this.UpperArm.armLen*this.UpperArm.armLen;
+			const L12 = this.LowerArm.armLen*this.LowerArm.armLen;
+			// 距離計算は手抜きできない
+			const wristPos = this.wristPos;
+			const basePos = this.basePos;
+			const difV = [ wristPos[0]-basePos[0], wristPos[1]-basePos[1], wristPos[2]-basePos[2], wristPos[3]-basePos[3] ];
+			const D2 = 	difV[0]*difV[0]+difV[1]*difV[1]+difV[2]*difV[2]+difV[3]*difV[3];
+			const Dst = Math.sqrt( D2 );
+			const DD = Math.sqrt( D2-difV[1]*difV[1] );
+			let dist = (D2+L02-L12)/(2*Dst);
+			let height = -Math.sqrt( L02 - dist*dist );
+			const MINIMUM_Y = 0.01;
+			if(( difV[1] < -MINIMUM_Y )||( MINIMUM_Y < difV[1] )){
+				// 付け根と手首の高度差が大きければ調整
+				const sinYZ = -difV[1]/Dst;
+				const cosYZ = DD/Dst;
+				const newDist   =  dist*cosYZ+height*sinYZ;
+				const newHeight = -dist*sinYZ+height*cosYZ;
+				dist = newDist;
+				height = newHeight;
+			}
+			let elbowPos = basePos.concat();
+			const rate = dist/Dst;
+			elbowPos[0] += rate*difV[0];
+			elbowPos[1] += height;
+			elbowPos[2] += rate*difV[2];
+			elbowPos[3] += rate*difV[3];
+			
+			return elbowPos;
+		},
+		
+		// 基準点２つから傾きを算出：腕の伸び縮み方向
+		calcRotateYZ: function( srcPos, dstPos, armLen ){
+			const height = dstPos[1]-srcPos[1];
+			const ang = Math.PI/2 -Math.asin( height/armLen );
+			return ang;
+		},
+		// 横方向への回転角を求める
+		calcRotate: function( srcPos, dstPos, wkrRot ){
+			let rotate = [ 0,0,0,0,0,0 ];
+			// 確実の偏差
+			const difX = dstPos[0]-srcPos[0];
+			const difZ = dstPos[2]-srcPos[2];
+			const difH = dstPos[3]-srcPos[3];
+			
+			// z-xh回転を求める
+			let lenXH = Math.sqrt( difX*difX + difH*difH );
+			let z_xh = Math.atan2( difZ, lenXH );
+			z_xh += Math.PI*3/2;
+			rotate[4] = z_xh;
+			if( rotate[4] > Math.PI*2 ){
+				rotate[4] -= Math.PI*2;
+			}
+			
+			// xh回転を求める
+			let xh = Math.atan2( difH, difX );
+			rotate[5] = xh;
+			return rotate;			// [ xy, yz, yh, zh, xz, xh ]
+		},
+		
+		// 描画
+		draw:	function( isRedraw, hPos, wkrMtx, viewProjMtx, shaderParam ){
+			
+			// 描画
+			if( isRedraw ){
+				
+				this.ArmBase.transform( wkrMtx );
+				this.ArmBase.dividePylams( hPos );
+				this.UpperArm.transform( wkrMtx );
+				this.UpperArm.dividePylams( hPos );
+				this.LowerArm.transform( wkrMtx );
+				this.LowerArm.dividePylams( hPos );
+				this.Hand.transform();
+				this.Hand.dividePylams( hPos );
+			}
+			this.Base.prepDraw( hPos, viewProjMtx, shaderParam );
+			this.Base.draw( this.shader );
+			this.Elbow.prepDraw( hPos, viewProjMtx, shaderParam );
+			this.Elbow.draw( this.shader );
+			this.Wrist.prepDraw( hPos, viewProjMtx, shaderParam );
+			this.Wrist.draw( this.shader );
+		},
+	}	
+	// 
+	let WalkerOne = function( gl, pos, rotate, shader, brain, armBrain ){
+		this.pos = pos;
+		this.rot = rotate;
+		this.scale = [ 1,1,1,1 ];
+		this.shader = shader;
+		this.localMtx = new fDWL.R4D.Matrix4();
+		this.brain = brain;
+		this.armBrain = armBrain;
+		
+		// 胴体部分
+		this.Body = new fDWL.R4D.Pylams4D(
+			gl,
+			shader.prg,
+			[ 0, 0, 0, 0 ],			// pos
+			this.rot.concat(),									// rotate
+//			[ WalkerBody_SCALE, WalkerBody_SCALE, WalkerBody_SCALE, WalkerBody_SCALE ],
+			[ WalkerBody_SCALE/2, WalkerBody_SCALE/2, WalkerBody_SCALE/2, WalkerBody_SCALE/2 ],
+			[ // Vertice
+				// new
+				1, 2,2,1, -1, 2,2,1, 1, 2,2,-1, -1, 2,2,-1,  1, 2, 0,1, -1, 2, 0,1, 1, 2, 0,-1, -1, 2, 0,-1, 
+				2, 0,3,2, -2, 0,3,2, 2, 0,3,-2, -2, 0,3,-2,  2, 0,-3,2, -2, 0,-3,2, 2, 0,-3,-2, -2, 0,-3,-2, 
+				1,-1,2,1, -1,-1,2,1, 1,-1,2,-1, -1,-1,2,-1,  1,-1,-2,1, -1,-1,-2,1, 1,-1,-2,-1, -1,-1,-2,-1
+				/**/
+			],
+			// color
+			[ 192,192,192,255, 255,127,127,255 ],
+			// center
+			[ 0, 0, 0, 0 ],
+			[	// index of Pylamids
+				 0, 1, 3, 5,  0, 2, 3, 6,  0, 4, 5, 6,  3, 5, 6, 7,  0, 3, 5, 6,		// 上(Y=+2)
+				 8, 9,11,13,  8,10,11,14,  8,12,13,14, 11,13,14,15,  8,11,13,14,		// 下(Y= 0)		←不要
+				 0, 2, 6,10,  0, 6, 4,12,  0, 8,10,12,  6,10,12,14,  0, 6,10,12,		// 右(X>0)
+				 
+				 1, 3, 7,11,  1, 7, 5,13,  1, 9,11,13,  7,11,13,15,  1, 7,11,13,		// 左(X<0)
+				 0, 1, 3, 9,  0, 2, 3,10,  0, 8, 9,10,  3, 9,10,11,  0, 3, 9,10,		// 前(Z>0)
+				 4, 5, 7,13,  4, 6, 7,14,  4,12,13,14,  7,13,14,15,  4, 7,13,14,		// 後(Z<0)
+				 0, 1, 5, 9,  0, 4, 5,12,  0, 8, 9,12,  5, 9,12,13,  0, 5, 9,12,		// こっち(h>0)
+				 2, 3, 7,11,  2, 6, 7,14,  2,10,11,14,  7,11,14,15,  2, 7,11,14,		// あっち(h<0)
+				 						
+				 8, 9,11,13,  8,10,11,14,  8,12,13,14, 11,13,14,15,  8,11,13,14,		// 上(Y= 0)			←不要
+				16,17,19,21, 16,18,19,22, 16,20,21,22, 19,21,22,23, 16,19,21,22,		// 下(Y=-1)	
+				 8,10,14,18,  8,14,12,20,  8,16,18,20, 14,18,20,22,  8,14,18,20,		// 右(X>0)
+				 
+				 9,11,15,19,  9,15,13,21,  9,17,19,21, 15,19,21,23,  9,15,19,21,		// 左(X<0)
+				 8, 9,11,17,  8,10,11,18,  8,16,17,18, 11,17,18,19,  8,11,17,18,		// 前(Z>0)
+				12,13,15,21, 12,14,15,22, 12,20,21,22, 15,21,22,23, 12,15,21,22,		// 後(Z<0)
+				 8, 9,13,17,  8,12,13,20,  8,16,17,20, 13,17,20,21,  8,13,17,20,		// こっち(h>0)
+				10,11,15,19, 10,14,15,22, 10,18,19,22, 15,19,22,23, 10,15,19,22,		// あっち(h<0)
+			],
+			[	// chrnIdx: 各五胞体の構成頂点index
+				// 元無し
+			],
+			[	// centIdx
+				0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 
+				0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 
+				0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 
 				0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0
 			],
 			[	// color index of pylamid
+				0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 
+				1,1,1,1,1, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 
 				0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 
 				0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0
 			],
@@ -1109,12 +1925,12 @@ function WalkerArmed(){
 		// 脚部
 		this.Legs = [];
 		this.LegPlace = [
-			[ 0.5,LegBaseHeight, 0.5, 0.5 ], [ -0.5,LegBaseHeight, 0.5, 0.5 ],
-			[ 0.5,LegBaseHeight,-0.5, 0.5 ], [ -0.5,LegBaseHeight,-0.5, 0.5 ],
-			[ 0.5,LegBaseHeight, 0.5,-0.5 ], [ -0.5,LegBaseHeight, 0.5,-0.5 ],
-			[ 0.5,LegBaseHeight,-0.5,-0.5 ], [ -0.5,LegBaseHeight,-0.5,-0.5 ]
+			[ 1.0,LegBaseHeight, 0.5, 1.0 ], [ -1.0,LegBaseHeight, 0.5, 1.0 ],
+			[ 1.0,LegBaseHeight,-0.5, 1.0 ], [ -1.0,LegBaseHeight,-0.5, 1.0 ],
+			[ 1.0,LegBaseHeight, 0.5,-1.0 ], [ -1.0,LegBaseHeight, 0.5,-1.0 ],
+			[ 1.0,LegBaseHeight,-0.5,-1.0 ], [ -1.0,LegBaseHeight,-0.5,-1.0 ]
 		];
-		this.LegPos = [];
+		//this.LegPos = [];
 		for( let idx = 0; idx < LEG_NUM; ++idx ){
 			this.Legs[idx] = new LegSet( idx, this.LegPlace[idx], [ 0,0,0,0,0,0 ], triangleShader, this.brain );
 			this.brain.LegObj[idx] = this.Legs[idx];
@@ -1124,6 +1940,13 @@ function WalkerArmed(){
 				
 			}
 		}
+		// 腕部
+		this.Arms = [];
+		this.ArmPlace = [
+			[ 0, 0.3, 1.8, 0 ],
+		];
+		this.Arms[0] = new ArmSet( this.ArmPlace[0], [ 0,0,0,0,0,0 ], triangleShader, this.armBrain );
+		
 		this.resetParam = {};
 	}
 	
@@ -1140,6 +1963,7 @@ function WalkerArmed(){
 			for( let idx = 0; idx < LEG_NUM; ++idx ){
 				this.Legs[idx].initParts( primBuffer );
 			}
+			this.Arms[0].initParts( primBuffer );
 		},
 		
 		// 位置・角度等再設定
@@ -1238,6 +2062,7 @@ function WalkerArmed(){
 			for( let idx = 0; idx < LEG_NUM; ++idx ){
 				this.Legs[idx].walk( this.LegPlace[idx], this.localMtx, this.pos, this.rot.concat(), speed );
 			}
+			this.Arms[0].walk( this.ArmPlace[0], this.localMtx, this.pos, this.rot.concat(), speed );
 		},
 		
 		draw:	function( isRedraw, hPos, viewProjMtx, shaderParam ){
@@ -1252,10 +2077,11 @@ function WalkerArmed(){
 			for( let idx = 0; idx < LEG_NUM; ++idx ){
 				this.Legs[idx].draw( isRedraw, hPos, this.localMtx, viewProjMtx, shaderParam );
 			}
+			this.Arms[0].draw( isRedraw, hPos, this.localMtx, viewProjMtx, shaderParam );
 		}
 	}
 	
-	let Walker = new WalkerOne( gl, walkerInitPos.concat(), walkerInitRot.concat(), triangleShader, LegBrain );
+	let Walker = new WalkerOne( gl, walkerInitPos.concat(), walkerInitRot.concat(), triangleShader, LegBrain, ArmBrain );
 	Walker.initParts( TriBuffer );
 	
 	Walker.setResetParam({
@@ -1513,6 +2339,23 @@ function WalkerArmed(){
 		if(( keyStatus[8] )&&( !keyBackup[8] )){	// 'r'
 			isReset = true;
 		}
+		// Arm動作
+		if(( keyStatus[10] )&&( !keyBackup[10] )){	// 'a'
+			//HormonicalMove.goSweap();
+			ArmBrain.setSweap();
+		}else
+		if(( keyStatus[11] )&&( !keyBackup[11] )){	// 's'
+			//HormonicalMove.goSlash();
+			ArmBrain.setSlash();
+		}else
+		if(( keyStatus[12] )&&( !keyBackup[12] )){	// 'h'
+			//HormonicalMove.goHook();
+			ArmBrain.setHook();
+		}else
+		if(( keyStatus[13] )&&( !keyBackup[13] )){	// 't'
+			//HormonicalMove.goThrust();
+			ArmBrain.setThrust();
+		}
 		
 		// 視野からはみ出たときの処理
 		const wkPos = Walker.getPos();
@@ -1632,6 +2475,10 @@ function WalkerArmed(){
 			keyG:	"g",
 			keyP:	"p",
 			keyR:	"r",
+			keyA:	"a",
+			keyS:	"s",
+			keyH:	"h",
+			keyT:	"t",
 		};
 		
 		if( browserInfo[0] === "Microsoft Edge" ){
