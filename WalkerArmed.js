@@ -4,7 +4,7 @@
 //	http://www7b.biglobe.ne.jp/~fdw
 //==================================================================================
 
-/* glMatrix v0.9.5
+/* glMatrix v0.9.5 */
 glMatrixArrayType=typeof Float32Array!="undefined"?Float32Array:typeof WebGLFloatArray!="undefined"?WebGLFloatArray:Array;var vec3={};vec3.create=function(a){var b=new glMatrixArrayType(3);if(a){b[0]=a[0];b[1]=a[1];b[2]=a[2]}return b};vec3.set=function(a,b){b[0]=a[0];b[1]=a[1];b[2]=a[2];return b};vec3.add=function(a,b,c){if(!c||a==c){a[0]+=b[0];a[1]+=b[1];a[2]+=b[2];return a}c[0]=a[0]+b[0];c[1]=a[1]+b[1];c[2]=a[2]+b[2];return c};
 vec3.subtract=function(a,b,c){if(!c||a==c){a[0]-=b[0];a[1]-=b[1];a[2]-=b[2];return a}c[0]=a[0]-b[0];c[1]=a[1]-b[1];c[2]=a[2]-b[2];return c};vec3.negate=function(a,b){b||(b=a);b[0]=-a[0];b[1]=-a[1];b[2]=-a[2];return b};vec3.scale=function(a,b,c){if(!c||a==c){a[0]*=b;a[1]*=b;a[2]*=b;return a}c[0]=a[0]*b;c[1]=a[1]*b;c[2]=a[2]*b;return c};
 vec3.normalize=function(a,b){b||(b=a);var c=a[0],d=a[1],e=a[2],g=Math.sqrt(c*c+d*d+e*e);if(g){if(g==1){b[0]=c;b[1]=d;b[2]=e;return b}}else{b[0]=0;b[1]=0;b[2]=0;return b}g=1/g;b[0]=c*g;b[1]=d*g;b[2]=e*g;return b};vec3.cross=function(a,b,c){c||(c=a);var d=a[0],e=a[1];a=a[2];var g=b[0],f=b[1];b=b[2];c[0]=e*b-a*f;c[1]=a*g-d*b;c[2]=d*f-e*g;return c};vec3.length=function(a){var b=a[0],c=a[1];a=a[2];return Math.sqrt(b*b+c*c+a*a)};vec3.dot=function(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]};
@@ -36,7 +36,6 @@ quat4.normalize=function(a,b){b||(b=a);var c=a[0],d=a[1],e=a[2],g=a[3],f=Math.sq
 quat4.multiplyVec3=function(a,b,c){c||(c=b);var d=b[0],e=b[1],g=b[2];b=a[0];var f=a[1],h=a[2];a=a[3];var i=a*d+f*g-h*e,j=a*e+h*d-b*g,k=a*g+b*e-f*d;d=-b*d-f*e-h*g;c[0]=i*a+d*-b+j*-h-k*-f;c[1]=j*a+d*-f+k*-b-i*-h;c[2]=k*a+d*-h+i*-f-j*-b;return c};quat4.toMat3=function(a,b){b||(b=mat3.create());var c=a[0],d=a[1],e=a[2],g=a[3],f=c+c,h=d+d,i=e+e,j=c*f,k=c*h;c=c*i;var l=d*h;d=d*i;e=e*i;f=g*f;h=g*h;g=g*i;b[0]=1-(l+e);b[1]=k-g;b[2]=c+h;b[3]=k+g;b[4]=1-(j+e);b[5]=d-f;b[6]=c-h;b[7]=d+f;b[8]=1-(j+l);return b};
 quat4.toMat4=function(a,b){b||(b=mat4.create());var c=a[0],d=a[1],e=a[2],g=a[3],f=c+c,h=d+d,i=e+e,j=c*f,k=c*h;c=c*i;var l=d*h;d=d*i;e=e*i;f=g*f;h=g*h;g=g*i;b[0]=1-(l+e);b[1]=k-g;b[2]=c+h;b[3]=0;b[4]=k+g;b[5]=1-(j+e);b[6]=d-f;b[7]=0;b[8]=c-h;b[9]=d+f;b[10]=1-(j+l);b[11]=0;b[12]=0;b[13]=0;b[14]=0;b[15]=1;return b};quat4.slerp=function(a,b,c,d){d||(d=a);var e=c;if(a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3]<0)e=-1*c;d[0]=1-c*a[0]+e*b[0];d[1]=1-c*a[1]+e*b[1];d[2]=1-c*a[2]+e*b[2];d[3]=1-c*a[3]+e*b[3];return d};
 quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
-*/
 
 //============================================================
 //	OnLoad
@@ -74,6 +73,11 @@ function WalkerArmed(){
 //	const	walkerInitRot = [ 0,0,0,0.15,0.80,0 ];
 	const	walkerInitRot = [ 0,0,0,0,0,0 ];
 	const	walkerInitPos = [ 0,1.2,0,3 ];
+	const	DimensionX = 0,
+			DimensionY = 1,
+			DimensionZ = 2,
+			DimensionH = 3;
+
 	let floorPos = [ 0, 0, 0 ];
 	
 	try{
@@ -97,8 +101,8 @@ function WalkerArmed(){
 	cnvs.height = 384;
 	
 	// キーイベント
-	let keyStatus = [ false, false, false, false, false, false, false, false, false, false, false, false, false, false ];
-	let keyBackup = [ false, false, false, false, false, false, false, false, false, false, false, false, false, false ];
+	let keyStatus = [ false, false, false, false, false, false, false, false, false, false, false, false, false, false, false ];
+	let keyBackup = [ false, false, false, false, false, false, false, false, false, false, false, false, false, false, false ];
 	if( window.addEventListener ){
 		function KeyDownFunc( evt ){
 			"use strict";
@@ -135,6 +139,7 @@ function WalkerArmed(){
 			if( keyname === keyEventNames.keyS	){ keyStatus[11] = true; } else 
 			if( keyname === keyEventNames.keyH	){ keyStatus[12] = true; } else 
 			if( keyname === keyEventNames.keyT	){ keyStatus[13] = true; }
+			if( keyname === keyEventNames.alt	){ keyStatus[14] = true; }
 		}
 		
 		function KeyUpFunc( evt ){
@@ -172,13 +177,132 @@ function WalkerArmed(){
 			if( keyname === keyEventNames.keyS	){ keyStatus[11] = false; } else 
 			if( keyname === keyEventNames.keyH	){ keyStatus[12] = false; } else 
 			if( keyname === keyEventNames.keyT	){ keyStatus[13] = false; }
+			if( keyname === keyEventNames.alt	){ keyStatus[14] = false; }
 		}
 		// ドキュメントにリスナーを登録
 		document.addEventListener( "keydown", KeyDownFunc, false );
 		document.addEventListener( "keyup", KeyUpFunc, false );
 		
+		// ボタン操作
+		function btnLD(){
+			keyStatus[2] = true;
+		}
+		function btnRD(){
+			keyStatus[3] = true;
+		}
+		function btnAD(){
+			keyStatus[10] = true;
+		}
+		function btnSD(){
+			keyStatus[11] = true;
+		}
+		function btnHD(){
+			keyStatus[12] = true;
+		}
+		function btnTD(){
+			keyStatus[13] = true;
+		}
+		function btnADh(){
+			keyStatus[10] = true;
+			keyStatus[14] = true;
+		}
+		function btnSDh(){
+			keyStatus[11] = true;
+			keyStatus[14] = true;
+		}
+		function btnHDh(){
+			keyStatus[12] = true;
+			keyStatus[14] = true;
+		}
+		function btnLU(){
+			keyStatus[2] = false;
+		}
+		function btnRU(){
+			keyStatus[3] = false;
+		}
+		function btnAU(){
+			keyStatus[10] = false;
+		}
+		function btnSU(){
+			keyStatus[11] = false;
+		}
+		function btnHU(){
+			keyStatus[12] = false;
+		}
+		function btnTU(){
+			keyStatus[13] = false;
+		}
+		function btnAUh(){
+			keyStatus[10] = false;
+			keyStatus[14] = false;
+		}
+		function btnSUh(){
+			keyStatus[11] = false;
+			keyStatus[14] = false;
+		}
+		function btnHUh(){
+			keyStatus[12] = false;
+			keyStatus[14] = false;
+		}
+		document.getElementById('btn_L').addEventListener( "mousedown", btnLD, false );
+		document.getElementById('btn_R').addEventListener( "mousedown", btnRD, false );
+		document.getElementById('btn_A').addEventListener( "mousedown", btnAD, false );
+		document.getElementById('btn_S').addEventListener( "mousedown", btnSD, false );
+		document.getElementById('btn_H').addEventListener( "mousedown", btnHD, false );
+		document.getElementById('btn_T').addEventListener( "mousedown", btnTD, false );
+		document.getElementById('btn_Ah').addEventListener( "mousedown", btnADh, false );
+		document.getElementById('btn_Sh').addEventListener( "mousedown", btnSDh, false );
+		document.getElementById('btn_Hh').addEventListener( "mousedown", btnHDh, false );
+		document.getElementById('btn_Th').addEventListener( "mousedown", btnTD, false );
+		
+		document.getElementById('btn_L').addEventListener( "mouseup", btnLU, false );
+		document.getElementById('btn_R').addEventListener( "mouseup", btnRU, false );
+		document.getElementById('btn_A').addEventListener( "mouseup", btnAU, false );
+		document.getElementById('btn_S').addEventListener( "mouseup", btnSU, false );
+		document.getElementById('btn_H').addEventListener( "mouseup", btnHU, false );
+		document.getElementById('btn_T').addEventListener( "mouseup", btnTU, false );
+		document.getElementById('btn_Ah').addEventListener( "mouseup", btnAUh, false );
+		document.getElementById('btn_Sh').addEventListener( "mouseup", btnSUh, false );
+		document.getElementById('btn_Hh').addEventListener( "mouseup", btnHUh, false );
+		document.getElementById('btn_Th').addEventListener( "mouseup", btnTU, false );
+		
+		// タッチイベント
+		if( window.TouchEvent ){
+			document.getElementById('btn_L').addEventListener( "touchstart", btnLD, false );
+			document.getElementById('btn_R').addEventListener( "touchstart", btnRD, false );
+			document.getElementById('btn_A').addEventListener( "touchstart", btnAD, false );
+			document.getElementById('btn_S').addEventListener( "touchstart", btnSD, false );
+			document.getElementById('btn_H').addEventListener( "touchstart", btnHD, false );
+			document.getElementById('btn_T').addEventListener( "touchstart", btnTD, false );
+			document.getElementById('btn_Ah').addEventListener( "touchstart", btnADh, false );
+			document.getElementById('btn_Sh').addEventListener( "touchstart", btnSDh, false );
+			document.getElementById('btn_Hh').addEventListener( "touchstart", btnHDh, false );
+			document.getElementById('btn_Th').addEventListener( "touchstart", btnTD, false );
+			
+			document.getElementById('btn_L').addEventListener( "touchend", btnLU, false );
+			document.getElementById('btn_R').addEventListener( "touchend", btnRU, false );
+			document.getElementById('btn_A').addEventListener( "touchend", btnAU, false );
+			document.getElementById('btn_S').addEventListener( "touchend", btnSU, false );
+			document.getElementById('btn_H').addEventListener( "touchend", btnHU, false );
+			document.getElementById('btn_T').addEventListener( "touchend", btnTU, false );
+			document.getElementById('btn_Ah').addEventListener( "touchend", btnAUh, false );
+			document.getElementById('btn_Sh').addEventListener( "touchend", btnSUh, false );
+			document.getElementById('btn_Hh').addEventListener( "touchend", btnHUh, false );
+			document.getElementById('btn_Th').addEventListener( "touchend", btnTU, false );
+			
+			document.getElementById('btn_L').addEventListener( "touchcancel", btnLU, false );
+			document.getElementById('btn_R').addEventListener( "touchcancel", btnRU, false );
+			document.getElementById('btn_A').addEventListener( "touchcancel", btnAU, false );
+			document.getElementById('btn_S').addEventListener( "touchcancel", btnSU, false );
+			document.getElementById('btn_H').addEventListener( "touchcancel", btnHU, false );
+			document.getElementById('btn_T').addEventListener( "touchcancel", btnTU, false );
+			document.getElementById('btn_Ah').addEventListener( "touchcancel", btnAUh, false );
+			document.getElementById('btn_Sh').addEventListener( "touchcancel", btnSUh, false );
+			document.getElementById('btn_Hh').addEventListener( "touchcancel", btnHUh, false );
+			document.getElementById('btn_Th').addEventListener( "touchcancel", btnTU, false );
+		}
 	}
-	
+		
 	// 移動方向
 	let moveXZ = {
 		rot:	Math.PI/2,					// 移動方向
@@ -288,6 +412,7 @@ function WalkerArmed(){
 	const CmdListMax = CmdListOut+1;
 	
 	
+	//=====================================================================
 	// 足の動作コントローラ
 	let LegBrain = {
 		
@@ -609,6 +734,10 @@ function WalkerArmed(){
 					if( this.LegState[pairNo] === StatePw ){
 						this.sndCmd( cmd, pairNo );
 					}
+					// 動作終了通知なら、通知後、nop化
+					if(( cmd === CmdLgEnd )&&(this.LegState[pairNo] === StateW)){
+						this.CmdList[lgNo] = CmdNop;
+					}
 					// 全動作終了なら、次回コマンドを発行
 					if( this.CmdList[CmdListOut] === CmdNop ){
 						for( let idx = 0; idx < this.LegState.length; ++idx ){
@@ -627,6 +756,9 @@ function WalkerArmed(){
 					this.MainCmd = cmd;
 				}
 				this.CmdList[lgNo] = CmdNop;
+			}
+			if(( this.isAllWait() )&&( this.MainCmd === CmdMvStop )){
+				this.MainCmd = CmdNop;
 			}
 		},
 		// 動作を初期化
@@ -655,9 +787,23 @@ function WalkerArmed(){
 				break;
 			}
 			return pairNo;
+		},
+		
+		getCommand: function(){
+			return this.MainCmd;
+		},
+		
+		isAllWait:	function(){
+			for( let lgNo = 0; lgNo < CmdListOut; ++lgNo ){
+				if(( this.CmdList[lgNo] !== CmdNop )||( this.LegState[lgNo] !== StateW )){
+					return false;
+				}
+			}
+			return true;
 		}
 	};
 	
+	//=====================================================================
 	const LegBaseHeight = -0.5;
 	const LEG_NUM = 8;				// 脚の本数
 	// Leg of Walkers
@@ -843,6 +989,7 @@ function WalkerArmed(){
 		this.LowerLeg.legLen = 2.0;
 		
 	}
+	//=====================================================================
 	LegSet.prototype = {
 		
 		initParts:	function( primBuffer ){
@@ -949,7 +1096,9 @@ function WalkerArmed(){
 			// 移動終了チェック
 			if(( this.anklePos[0] === this.targetPos[0] )&&( this.anklePos[1] === this.targetPos[1] )&&( this.anklePos[2] === this.targetPos[2] )&&( this.anklePos[3] === this.targetPos[3] )){
 				// 終了通知を発信
-				this.brain.rcvCmd( CmdLgEnd, this.id );
+				if( !this.brain.isAllWait() ){
+					this.brain.rcvCmd( CmdLgEnd, this.id );
+				}
 			}
 		},
 		
@@ -1089,6 +1238,7 @@ function WalkerArmed(){
 		},
 	}
 	
+	//=====================================================================
 	const CmdPrep	= CmdLgEnd+1;			// 攻撃準備
 	const CmdSlash	= CmdPrep+1;			// 攻撃
 	const CmdReturn	= CmdSlash+1;			// 基準位置復帰
@@ -1099,7 +1249,7 @@ function WalkerArmed(){
 	const AttackHook	= AttackSlash+1;
 	const AttackThrust	= AttackHook+1;
 	// 剣の角度
-	const MaxSwordAngle	= Math.PI/3;
+	const MaxSwordAngle	= -Math.PI/3;
 	let ArmBrain = {
 		
 		// コマンド
@@ -1108,17 +1258,23 @@ function WalkerArmed(){
 		// 攻撃種別
 		AttackType:	0/*AttackThrust*/,
 		
+		// 攻撃種別
+		AttackDimension:	DimensionX,
+		
 		// 動作カウンタ
 		ActCounter:	0,
 		
 		// 動作カウンタの現最大値:動作に拠って異なる
-		MaxCounter:	60,
+//		MaxCounter:	60,
+		MaxCounter:	180,
 		
 		// 手に対する剣の角度
 		SwordAngle:	0,
 		
 		// 手の基準位置
-		StdArmPos:	[ [ 0, 0.5, 1.5, 0 ], [ 2.0, 0.5, 1.1, 0 ], [ -2.0, 0.5, 1.1, 0 ], [ 0, 0.5, 1.1, 0 ], [ 0, 0.5, 2.5, 0 ] ],
+		StdArmPos:	[ [ 0, 0.5, 1.5, 0 ], [ 2.0, 0.5, 1.1, 0 ], [ -2.0, 0.5, 1.1, 0 ], [ 0, 0.5, 1.1, 0 ], [ 0, 0.5, 2.5, 0 ],
+					  [ 0, 0.5, 1.5, 0 ], [ 0, 0.5, 1.1, 2.0 ], [ 0, 0.5, 1.1, -2.0 ], [ 0, 0.5, 1.1, 0 ], [ 0, 0.5, 2.5, 0 ]
+					],
 		
 		getHandPos: function( defaultPos ){
 			if(( this.Command === CmdNop )||( this.Command === CmdWaitSlash )||( this.Command === CmdWaitReturn )){
@@ -1128,6 +1284,12 @@ function WalkerArmed(){
 				return defaultPos;
 			}
 			this.ActCounter++;
+			
+/**
+if(( this.Command === CmdSlash )&&( this.ActCounter >= this.MaxCounter )){
+	return defaultPos;
+}
+/**/
 			if( this.ActCounter >= this.MaxCounter ){
 				this.ActCounter = 0;
 				
@@ -1144,6 +1306,7 @@ function WalkerArmed(){
 					break;
 				case CmdReturn:
 					this.Command = CmdNop;
+					return this.StdArmPos[0];
 					break;
 				case CmdWaitSlash:
 				case CmdWaitReturn:
@@ -1184,6 +1347,9 @@ function WalkerArmed(){
 				}else{
 					return defaultPos;
 				}
+				if( this.AttackDimension === DimensionH ){
+					srcIdx += 5, dstIdx += 5;
+				}
 			}
 			const srcPos = this.StdArmPos[srcIdx];
 			const dstPos = this.StdArmPos[dstIdx];
@@ -1205,7 +1371,7 @@ function WalkerArmed(){
 					handPos[0] *= leng;
 					handPos[1]  = lerpPos[1];
 					handPos[2] *= leng;
-					handPos[3] = 0;
+					handPos[3] *= leng;		// H回転付きの場合
 				}else{
 					// 斬撃以外は線形補間
 					handPos = fDWL.lerp4( srcPos, dstPos, rate );
@@ -1221,6 +1387,7 @@ function WalkerArmed(){
 					if( this.AttackType == AttackHook ){
 						this.SwordAngle = -rate*MaxSwordAngle;
 					}
+					
 				}else
 				if( this.Command == CmdSlash ){
 					if( this.AttackType == AttackSlash ){
@@ -1238,7 +1405,6 @@ function WalkerArmed(){
 						this.SwordAngle = -(1-rate)*MaxSwordAngle;
 					}
 				}
-				
 			}
 			return handPos;
 		},
@@ -1308,6 +1474,14 @@ function WalkerArmed(){
 			this.Command = CmdPrep;
 			this.AttackType = AttackThrust;
 		},
+		// 攻撃方向の指定
+		setDimension( dim ){
+			this.AttackDimension = dim;
+		},
+		// 攻撃方向の取得
+		getDimension(){
+			return this.AttackDimension;
+		},
 		// 動作実行状況を取得
 		getCommand: function(){
 			return this.Command;
@@ -1317,7 +1491,8 @@ function WalkerArmed(){
 		},
 	};
 	
-		// 手と足の強調動作
+	//===================================================================== HormonicalMove
+	// 手と足の強調動作
 	const RETREAT_DISTANCE = 2;
 	const RETREAT_DISTANCE2 = RETREAT_DISTANCE*RETREAT_DISTANCE;
 	let HormonicalMove = {
@@ -1363,7 +1538,7 @@ function WalkerArmed(){
 					];
 					const dst = fDWL.inProd4D( dif, dif );
 					if( dst >= RETREAT_DISTANCE2 ){
-						LegBrain.rcvCmd( CmdMvStop, 4 );	// 後退終了
+						LegBrain.rcvCmd( CmdMvStop, CmdListOut );	// 後退終了
 						this.Command = CmdSlash;
 					}
 				}
@@ -1377,7 +1552,7 @@ function WalkerArmed(){
 					// 斬撃終了＝復帰動作開始
 					this.Command = CmdReturn;
 					ArmBrain.setCommand( CmdReturn );
-					LegBrain.rcvCmd( CmdMvFwd, 4 );	// 前進開始
+					LegBrain.rcvCmd( CmdMvFwd, CmdListOut );	// 前進開始
 					this.StartPos = pos;
 				}
 			}else
@@ -1393,42 +1568,47 @@ function WalkerArmed(){
 					const dif = [
 						this.StartPos[0]-this.CurrentPos[0], this.StartPos[1]-this.CurrentPos[1], this.StartPos[2]-this.CurrentPos[2], this.StartPos[3]-this.CurrentPos[3]
 					];
-					const dst = fDWL.inProd3D( dif, dif );
+					const dst = fDWL.inProd4D( dif, dif );
 					if( dst >= RETREAT_DISTANCE2 ){
-						LegBrain.rcvCmd( CmdMvStop, 4 );	// 前進終了
+						LegBrain.rcvCmd( CmdMvStop, CmdListOut );	// 前進終了
 					}
 				}
 			}
 		},
 		
 		// 手動による攻撃トリガー
-		goAttack:	function(){
+		goAttack:	function(isDimH){
 			this.Command = CmdPrep;
 			this.recordPosFlag = true;
-			LegBrain.rcvCmd( CmdMvBack, 4 );	// 後退開始
+			if(isDimH){
+				ArmBrain.setDimension(DimensionH);
+			}else{
+				ArmBrain.setDimension(DimensionX);
+			}
+			LegBrain.rcvCmd( CmdMvBack, CmdListOut );	// 後退開始
 		},
 		
-		goSweap:	function(){
+		goSweap:	function(isDimH){
 			if( this.Command === CmdNop ){
-				this.goAttack();
+				this.goAttack(isDimH);
 				ArmBrain.setSweap();
 			}
 		},
-		goSlash:	function(){
+		goSlash:	function(isDimH){
 			if( this.Command === CmdNop ){
-				this.goAttack();
+				this.goAttack(isDimH);
 				ArmBrain.setSlash();
 			}
 		},
-		goHook:		function(){
+		goHook:		function(isDimH){
 			if( this.Command === CmdNop ){
-				this.goAttack();
+				this.goAttack(isDimH);
 				ArmBrain.setHook();
 			}
 		},
-		goThrust:	function(){
+		goThrust:	function(isDimH){
 			if( this.Command === CmdNop ){
-				this.goAttack();
+				this.goAttack(isDimH);
 				ArmBrain.setThrust();
 			}
 		},
@@ -1441,7 +1621,7 @@ function WalkerArmed(){
 		this.rot = rotate;
 		this.basePos = [ 0,0,0,0 ];							// 常に0
 		this.armBasePos = [ 0, 0.2, 0.5, 0 ];				// 腕の付根の先端位置
-		this.wristPos = [ 0, 0.5, 2, 0 ];						// basePosからの相対位置
+		this.wristPos = [ 0, 0.5, 2, 0 ];					// basePosからの相対位置
 		this.elbowPos = [ 0,0,0,0 ];						// basePosからの相対位置
 		this.rotate = [ 0,0,0,0,0,0 ];						// ArmSet全体の回転角
 		this.scale = [ 1,1,1,0 ];
@@ -1453,7 +1633,7 @@ function WalkerArmed(){
 		this.brain = brain;
 		
 		this.Base  = new fDWL.D4D.Sphere4D( gl, [ 0,0,0,0 ], [ 0,0,0,0,0,0 ], 8, 8, 0.2, [ 1.0, 0.8, 0.8, 1.0 ], shader );
-		this.Elbow  = new fDWL.D4D.Sphere4D( gl, [ 0,0,0,0 ], [ 0,0,0,0,0,0 ], 8, 8, 0.2, [ 1.0, 0.8, 0.8, 1.0 ], shader );
+		this.Elbow = new fDWL.D4D.Sphere4D( gl, [ 0,0,0,0 ], [ 0,0,0,0,0,0 ], 8, 8, 0.2, [ 1.0, 0.8, 0.8, 1.0 ], shader );
 		this.Wrist = new fDWL.D4D.Sphere4D( gl, [ 0,0,0,0 ], [ 0,0,0,0,0,0 ], 8, 8, 0.2, [ 1.0, 0.8, 0.8, 1.0 ], shader );
 		this.ArmBase = new fDWL.R4D.Pylams4D(
 			gl,
@@ -1579,10 +1759,10 @@ function WalkerArmed(){
 			[ 0,0,0,0,0,0 ],							// rotate
 			[ 1, 1, 1, 1 ],
 			[ // Vertice
-				 0.0, 0.0, -0.5,  0.3,   0.3, 0.0, -0.5,  0.0,    0.0,  0.0, -0.5, -0.3,   -0.3,  0.0, -0.5,  0.0,
-				 0.0, 0.0,  0.5,  0.3,   0.3, 0.0,  0.5,  0.0,    0.0,  0.0,  0.5, -0.3,   -0.3,  0.0,  0.5,  0.0,
-				 0.0, 0.1, -0.5,  0.0,   0.0, 0.1,  0.5,  0.0,    0.0, -0.1, -0.5,  0.0,    0.0, -0.1,  0.5,  0.0,
-				 0.0, 0.0,  0.8,  0.0
+				 0.0, 0.0, -1.0,  0.3,   0.3, 0.0, -1.0,  0.0,    0.0,  0.0, -1.0, -0.3,   -0.3,  0.0, -1.0,  0.0,
+				 0.0, 0.0,  1.0,  0.3,   0.3, 0.0,  1.0,  0.0,    0.0,  0.0,  1.0, -0.3,   -0.3,  0.0,  1.0,  0.0,
+				 0.0, 0.1, -1.0,  0.0,   0.0, 0.1,  1.0,  0.0,    0.0, -0.1, -1.0,  0.0,    0.0, -0.1,  1.0,  0.0,
+				 0.0, 0.0,  1.3,  0.0
 			],
 			// color
 			[ 192, 128, 128, 255 ],
@@ -1607,7 +1787,7 @@ function WalkerArmed(){
 				0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 
 				0,0,0,0,0, 0,0,0,0,0
 			],
-			[ 0, 0, 0.5, 0 ],				// offs: vertex生成時位置オフセット
+			[ 0, 0, 1.0, 0 ],				// offs: vertex生成時位置オフセット
 			[ 0, 0, 0, 0, 0, 0 ]		// rot:  vertex生成時回転
 		);		
 		// 腕の長さを指定
@@ -1692,10 +1872,10 @@ function WalkerArmed(){
 			// 肘位置
 			this.elbowPos  = this.calcElbowPos();
 			
-			let rotBase = this.calcRotate( this.basePos,  this.armBasePos, wkrRot );
+			let rotBase  = this.calcRotate( this.basePos,  this.armBasePos, wkrRot );
 			let rotUpper = this.calcRotate( this.basePos,  this.wristPos, wkrRot );
 			let rotLower = rotUpper.concat();
-			rotBase[1] = -this.calcRotateYZ( this.basePos,  this.armBasePos, this.ArmBase.armLen );
+			rotBase[1]  = -this.calcRotateYZ( this.basePos,  this.armBasePos, this.ArmBase.armLen );
 			rotUpper[1] =  this.calcRotateYZ( this.basePos,  this.elbowPos, this.UpperArm.armLen );
 			rotLower[1] = -this.calcRotateYZ( this.wristPos, this.elbowPos, this.LowerArm.armLen );
 			this.ArmBase.setRotate( rotBase );
@@ -1788,12 +1968,39 @@ function WalkerArmed(){
 			rotate[4] = z_xh;
 			if( rotate[4] > Math.PI*2 ){
 				rotate[4] -= Math.PI*2;
+			}else
+			if( rotate[4] < 0 ){
+				rotate[4] += Math.PI*2;
 			}
 			
 			// xh回転を求める
 			let xh = Math.atan2( difH, difX );
 			rotate[5] = xh;
 			return rotate;			// [ xy, yz, yh, zh, xz, xh ]
+		},
+		
+/**/
+		// 剣(手)の角度を算出
+		getHandRotate: function(){
+			
+			let ang = [ 0, 0, 0, 0, this.LowerArm.getRotate()[4], this.LowerArm.getRotate()[5] ];
+			let swordAng = this.brain.getSwordAngle();
+			if( this.brain.getDimension() === DimensionX ){
+				if( this.wristPos[0] < 0 ){
+					swordAng *= -1;
+				}
+			}else
+			if( this.brain.getDimension() === DimensionH ){
+				if( this.wristPos[3] < 0 ){
+					swordAng *= -1;
+				}
+				// 算出できないパターンでの補正
+				if( ang[5] === 0 ){
+					ang[5] = Math.PI/2;
+				}
+			}
+			ang[4] = fDWL.addAngle(ang[4], swordAng );
+			return ang;
 		},
 		
 		// 描画
@@ -1808,6 +2015,8 @@ function WalkerArmed(){
 				this.UpperArm.dividePylams( hPos );
 				this.LowerArm.transform( wkrMtx );
 				this.LowerArm.dividePylams( hPos );
+				this.Hand.setRotate( this.getHandRotate() );
+				this.Hand.transform( wkrMtx );
 				this.Hand.transform();
 				this.Hand.dividePylams( hPos );
 			}
@@ -1835,14 +2044,12 @@ function WalkerArmed(){
 			shader.prg,
 			[ 0, 0, 0, 0 ],			// pos
 			this.rot.concat(),									// rotate
-//			[ WalkerBody_SCALE, WalkerBody_SCALE, WalkerBody_SCALE, WalkerBody_SCALE ],
 			[ WalkerBody_SCALE/2, WalkerBody_SCALE/2, WalkerBody_SCALE/2, WalkerBody_SCALE/2 ],
 			[ // Vertice
 				// new
 				1, 2,2,1, -1, 2,2,1, 1, 2,2,-1, -1, 2,2,-1,  1, 2, 0,1, -1, 2, 0,1, 1, 2, 0,-1, -1, 2, 0,-1, 
 				2, 0,3,2, -2, 0,3,2, 2, 0,3,-2, -2, 0,3,-2,  2, 0,-3,2, -2, 0,-3,2, 2, 0,-3,-2, -2, 0,-3,-2, 
 				1,-1,2,1, -1,-1,2,1, 1,-1,2,-1, -1,-1,2,-1,  1,-1,-2,1, -1,-1,-2,1, 1,-1,-2,-1, -1,-1,-2,-1
-				/**/
 			],
 			// color
 			[ 192,192,192,255, 255,127,127,255 ],
@@ -2122,7 +2329,7 @@ function WalkerArmed(){
 	cntrls.eHPos = document.getElementById('H_Pos');
 	cntrls.eHPosBox = document.getElementById('H_PosTxt');
 	cntrls.oldHPos = (-100);
-	cntrls.oldHPosBox = cntrls.eHPos.value;
+	cntrls.oldHPosBox = cntrls.eHPos.value + 300;
 	
 	cntrls.wkrPos = [ 0,0,0,0 ];
 	
@@ -2158,7 +2365,7 @@ function WalkerArmed(){
 			const difZ = posW[2]-views.eyePosition[2]
 			// 視点調整：Walkerとの距離を離されない
 			let distV = Math.sqrt( difX*difX + difZ*difZ );
-			const stdDist = 10;	// 基準距離
+			const stdDist = 12;	// 基準距離
 			if( distV > stdDist ){
 				let rate = 1-stdDist/distV;
 				views.eyePosition[0] += difX*rate;
@@ -2245,7 +2452,7 @@ function WalkerArmed(){
 */
 		
 		// H軸位置設定
-		hPos = cntrls.eHPos.value*(0.01);
+		hPos = cntrls.eHPos.value*(0.01) + 3.0;
 		
 /*
 		// 真４Ｄオブジェクトの更新：非移動時のみ
@@ -2304,6 +2511,12 @@ function WalkerArmed(){
 			floorPos[0] = Math.floor( posWk[0]/2 )*2;
 			floorPos[2] = Math.floor( posWk[2]/2 )*2;
 			
+			floorPos[0] += Math.floor( views.eyePosition[0]/8 )*2;
+			floorPos[2] += Math.floor( views.eyePosition[2]/8 )*2;
+
+			
+			
+			
 			mat4.identity( modelMatrix );
 			//mat4.translate( modelMatrix, [0.0, 0.0, 0.0], modelMatrix );
 			mat4.translate( modelMatrix, floorPos, modelMatrix );
@@ -2340,23 +2553,25 @@ function WalkerArmed(){
 			isReset = true;
 		}
 		// Arm動作
+		let isDimH = keyStatus[14];					// Alt
 		if(( keyStatus[10] )&&( !keyBackup[10] )){	// 'a'
-			//HormonicalMove.goSweap();
-			ArmBrain.setSweap();
+			HormonicalMove.goSweap(isDimH);
+			//ArmBrain.setSweap();
 		}else
 		if(( keyStatus[11] )&&( !keyBackup[11] )){	// 's'
-			//HormonicalMove.goSlash();
-			ArmBrain.setSlash();
+			HormonicalMove.goSlash(isDimH);
+			//ArmBrain.setSlash();
 		}else
 		if(( keyStatus[12] )&&( !keyBackup[12] )){	// 'h'
-			//HormonicalMove.goHook();
-			ArmBrain.setHook();
+			HormonicalMove.goHook(isDimH);
+			//ArmBrain.setHook();
 		}else
 		if(( keyStatus[13] )&&( !keyBackup[13] )){	// 't'
-			//HormonicalMove.goThrust();
-			ArmBrain.setThrust();
+			HormonicalMove.goThrust(isDimH);
+			//ArmBrain.setThrust();
 		}
 		
+/*
 		// 視野からはみ出たときの処理
 		const wkPos = Walker.getPos();
 		const ViewOffset = 2.6;
@@ -2366,6 +2581,7 @@ function WalkerArmed(){
 		if( wkPos[3] > hPos+ViewOffset ){
 			LegBrain.rcvCmd( CmdMvBack, CmdListOut );
 		}
+*/
 		
 		keyBackup = keyStatus.concat();
 		LegBrain.checkCmdList();
@@ -2381,6 +2597,12 @@ function WalkerArmed(){
 			isRedraw = true;
 			cntrls.wkrPos = Walker.pos.concat();
 		}
+		
+
+		// 動作統制
+		HormonicalMove.listenAMBAC( Walker.getPos() );
+
+		
 		Walker.walk( VELOCITY );
 		if( isRedraw ){
 			// 八胞体切断体の作成
@@ -2469,6 +2691,7 @@ function WalkerArmed(){
 			right:	"ArrowRight",
 			shift:	"Shift",
 			ctrl:	"Control",
+			alt:	"Alt",
 			space:	" ",
 			keyB:	"b",
 			keyF:	"f",

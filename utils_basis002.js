@@ -1300,6 +1300,23 @@ fDWL.lerpColor = function( idxA0,idxA1, idxB0,idxB1, idxC0,idxC1, rate0,rate1,ra
 	];
 };
 
+//------------------------------------------------------------------
+// 角度加算
+//------------------------------------------------------------------
+fDWL.addAngle = function( src0, src1 ){
+	"use strict";
+	let dst = src0 + src1;
+	if( dst < 0 ){
+		dst += Math.PI*2;
+	}else
+	if( Math.PI*2 < dst ){
+		dst -= Math.PI*2;
+	}
+	return dst;
+};
+
+
+
 //==================================================================
 // Obj3D
 // 3D Cylinder Object
