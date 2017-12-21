@@ -1,0 +1,117 @@
+<!DOCTYPE HTML>
+<html lang="ja">
+<head>
+	<title>Armed2</title>
+	<meta charset="utf-8">
+	
+	<script id="triangle_vs" type="x-shader/x-vertex">
+		attribute vec3 aVertexPosition;
+		attribute vec3 aVertexNormal;
+		attribute vec4 aVertexColor;
+		uniform  mat4 mvpMatrix;
+		uniform  mat4 invMatrix;
+		uniform  vec3 lightPosition;
+		uniform  vec3 eyeDirection;
+		uniform  vec4 ambientColor;
+		varying vec4 vColor;
+		
+		void main(){
+			vec3 lightDirection	= lightPosition - aVertexPosition;
+			vec3 invLight	= normalize( invMatrix * vec4( lightDirection, 0.0 ) ).xyz;
+			vec3 invEye		= normalize( invMatrix * vec4(eyeDirection, 0.0) ).xyz;
+			vec3 halfLE		= normalize( invLight + invEye );
+			float specular	= pow( clamp( dot(aVertexNormal, halfLE), 0.0, 1.0 ), 50.0 )*0.5;
+			float difuse	= clamp( dot( aVertexNormal, invLight) + specular, 0.2, 1.0 );
+			vec4 light		= aVertexColor * vec4(vec3(difuse), 1.0);
+			vColor			= light + ambientColor;
+			gl_Position		= mvpMatrix * vec4(aVertexPosition, 1.0);
+		}
+		
+	</script>
+	
+	<script id="triangle_fs" type="x-shader/x-fragment">
+		precision mediump float;
+		
+		varying vec4 vColor;
+		void main(){
+			gl_FragColor = vColor;
+		}
+	</script>
+	
+	<link rel="stylesheet" type="text/css" href="fdw_std.css">
+</head>
+
+<body>
+	<div id="container">
+		<script src="./utils_basis002.js" type="text/javascript"></script>
+		<script src="./WalkerArmed2.js" type="text/javascript"></script>
+		<script>
+			window.addEventListener("DOMContentLoaded",function(){ WalkerArmed(); }, false);
+		</script>
+		<header>
+			<h1>fDWalkers</h1>
+		</header>
+
+		<section style="font-size:16px"><b>Armed2</b>
+		<hr size=5 color=maroon>
+		<!-- 内容項目 -->
+		<section>
+		<canvas id="canvas" style="margin-left:10px;"></canvas>
+	</div>
+	<div id="fps-counter">
+		FPS: <span id="fps">--</span>
+	</div>
+	<div>
+		<input id="H_Pos" type = "range" value="0" max="300" min="-300"> H-Position
+		<input id="H_PosTxt" type="text" name="H_PosName" value="0">
+	</div>
+	　　
+	<button id="btn_L" type="submit" style="font-size:40px" name="bttnL" value=" < " >＜</button>
+	＝＝＝＝＝＝＝
+	<button id="btn_R" type="submit" style="font-size:40px" name="bttnR" value=" > " >＞</button>
+	<br>X:　
+	<button id="btn_A" type="submit" style="font-size:40px" name="bttnA" value=" A " >Ａ</button>
+	<button id="btn_S" type="submit" style="font-size:40px" name="bttnS" value=" S " >Ｓ</button>
+	<button id="btn_H" type="submit" style="font-size:40px" name="bttnH" value=" H " >Ｈ</button>
+	<button id="btn_T" type="submit" style="font-size:40px" name="bttnT" value=" T " >Ｔ</button>
+	<br>H:　
+	<button id="btn_Ah" type="submit" style="font-size:40px" name="bttnAh" value=" Ah " >Ａ</button>
+	<button id="btn_Sh" type="submit" style="font-size:40px" name="bttnSh" value=" Sh " >Ｓ</button>
+	<button id="btn_Hh" type="submit" style="font-size:40px" name="bttnHh" value=" Hh " >Ｈ</button>
+	<button id="btn_Th" type="submit" style="font-size:40px" name="bttnTh" value=" Th " >Ｔ</button>
+	<br>
+	WalkerArmedそのままです。ただし、向いている方向・移動方向が異なります。<br>
+	WalkerArmedがZ軸方向を向いていたのに対し、Armed2はH軸方向を向いています。<br>
+	そして、後ろ足の先端が我々の３次元空間に入っています。<br>
+	WalkerArmedと全く同じように後退しながら我々の３次元を縦断し、<br>
+	剣を振ってから前進、元の位置に戻ります。<br>
+	<br>
+	The Armed2 is same as the WalkerArmed, except facing and moving direction.<br>
+	The WalkerArmed faces to Z-direction, but the Armed2 faces H-direction.<br>
+	And, the edge of back feet are in our 3D-space.<br>
+	It retreats as the WalkerArmed and acrosses our 3D-space,<br>
+	it swings it's sword, then return to home position.<br>
+	<br>
+	<br>
+	キー操作( Key Operation )<br>
+	Ａ：斬り払い(X方向) Sweap(X-direction)<br>
+	Ｓ：なで斬り(X方向) Slash(X-direction)<br>
+	Ｈ：フック(X方向)　 Hook(X-direction)<br>
+	Ｔ：突き(Z方向)　　 Thrust(Z-direction)<br>
+	Ａ+Alt：斬り払い(H方向) Sweap(H-direction)<br>
+	Ｓ+Alt：なで斬り(H方向) Slash(H-direction)<br>
+	Ｈ+Alt：フック(H方向)　 Hook(H-direction)<br>
+	Ｔ+Alt：突き(Z方向)　　 Thrust(Z-direction)<br>
+	←：視点左回転 Turn Left<br>
+	→：視点右回転 Turn Right<br>
+	<p style="text-align:right">2017Dec22:The winter solstice</p>
+</section>
+<footer>
+	<a href="./main_page.html">メインページへ</a>
+	<h1>
+		fDW(2015Oct31-   )　
+	</h1>
+</footer>
+</div>
+</body>
+</html>

@@ -68,16 +68,20 @@ function WalkerArmed(){
 			WalkerBody_SCALE = 1,
 			SIGHT_LENGTH = 3*3,
 			SIGHT_HEIGHT = 2,
-			VELOCITY = 0.01,
+//			VELOCITY = 0.01,
+			VELOCITY = 0.02,
 			ROT_RATE = 0.003;
 //							[ xy, yz, yh, zh, xz, xh ]
 //	const	walkerInitRot = [ 0,0,0,0.15,0.80,0 ];
-	const	walkerInitRot = [ 0,0,0,0,0,0 ];
-	const	walkerInitPos = [ 0,1.2,0,3 ];
+	const	walkerInitRot = [ 0,0,0,1.57,0,0 ];
+//	const	walkerInitRot = [ 0,0,0,0,0,0 ];
+//	const	walkerInitPos = [ 0,1.2,0,3 ];
+	const	walkerInitPos = [ 0,1.2,0,4.5 ];
 	const	DimensionX = 0,
 			DimensionY = 1,
 			DimensionZ = 2,
 			DimensionH = 3;
+	const RETREAT_DISTANCE = 5.5;
 
 	let floorPos = [ 0, 0, 0 ];
 	
@@ -1494,7 +1498,7 @@ if(( this.Command === CmdSlash )&&( this.ActCounter >= this.MaxCounter )){
 	
 	//===================================================================== HormonicalMove
 	// 手と足の強調動作
-	const RETREAT_DISTANCE = 2;	const RETREAT_DISTANCE2 = RETREAT_DISTANCE*RETREAT_DISTANCE;
+	const RETREAT_DISTANCE2 = RETREAT_DISTANCE*RETREAT_DISTANCE;
 	let HormonicalMove = {
 		
 		Command:	CmdNop,
