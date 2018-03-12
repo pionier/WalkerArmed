@@ -371,96 +371,126 @@ fDWL.R4D.calcNormal4D = function( vertice, center ){
 		vec0 = [], vec1 = [], vec2 = [],
 		vc0  = [], vc1  = [], vc2  = [],
 		isEnd = false,
+		invert,
 		sign = 0;
 	
 	// 前処理：体に垂直なケースを取り除く
 	for( let idx = 0; idx < 4; ++idx ){
-		if(( v0[idx] == 0 )&&( v1[idx] == 0 )&&( v2[idx] == 0 )){
+		if( fDWL.isZero(v0[idx]) && fDWL.isZero(v1[idx]) && fDWL.isZero(v2[idx]) ){
 			nor4D[idx] = 1.0;
 			isEnd = true;
 			break;
 		}
 	}
-	// 本処理：ガウス・ジョルダン法
+	// 本処理
 	while( !isEnd ){
 		// X座標のピボットを得る
 		const tmp0 = Math.abs( v0[0] ), tmp1 = Math.abs( v1[0] ), tmp2 = Math.abs( v2[0] );
-		// ベクトルの並び替え
+		// ベクトルの並び替え(Xの係数を絶対値最大・非ゼロに)
 		if( tmp0 >= tmp1 ){
-			if( tmp1 >= tmp2 ){
-				// tmp0 >= tmp1 >= tmp2
+			if( tmp0 >= tmp2 ){
+				// tmp0 >= tmp2 >= tmp1
 				vec0 = v0, vec1 = v1, vec2 = v2;
-			}else
-			if( tmp0 >= tmp2 ){
-				// tmp0 >= tmp2 >= tmp1
-				vec0 = v0, vec1 = v2, vec2 = v1;
 			}else{
-				// tmp2 >= tmp0 >= tmp1
-				vec0 = v1, vec1 = v2, vec2 = v0;
-			}
-		}else{
-			if( tmp2 >= tmp1 ){
-				// tmp0 >= tmp1 >= tmp2
+				// tmp0 >= tmp2 >= tmp1
 				vec0 = v2, vec1 = v1, vec2 = v0;
-			}else
-			if( tmp0 >= tmp2 ){
-				// tmp0 >= tmp2 >= tmp1
-				vec0 = v0, vec1 = v2, vec2 = v1;
-			}else{
-				// tmp2 >= tmp0 >= tmp1
-				vec0 = v2, vec1 = v0, vec2 = v1;
 			}
+		}else
+		if( tmp1 >= tmp2 ){
+			// tmp1 >= tmp2 or tmp1
+			vec0 = v1, vec1 = v0, vec2 = v2;
+		}else{
+			// tmp2 > tmp2 or tmp1
+			vec0 = v2, vec1 = v0, vec2 = v2;
+		}
+		// 特殊事例
+		if((fDWL.isZero(vec0[1]))&&(fDWL.isZero(vec0[2]))&&(fDWL.isZero(vec0[3]))){
+			let tmpNor = fDWL.outProd( [ vec1[1], vec1[2], vec1[3] ], [ vec2[1], vec2[2], vec2[3] ] );
+			nor4D = [ 0.0, tmpNor[0], tmpNor[1], tmpNor[2] ];
+			break;
 		}
 		// X座標を処理( vec[0].x = 1.0, vec[1].x = vec[2].x = 0.0 )
-		vc0 = [ 1.0, vec0[1]/vec0[0], vec0[2]/vec0[0], vec0[3]/vec0[0] ];
-		vc1 = [ vec1[0]-vc0[0]*vec1[0], vec1[1]-vc0[1]*vec1[0], vec1[2]-vc0[2]*vec1[0], vec1[3]-vc0[3]*vec1[0] ];
-		vc2 = [ vec2[0]-vc0[0]*vec2[0], vec2[1]-vc0[1]*vec2[0], vec2[2]-vc0[2]*vec2[0], vec2[3]-vc0[3]*vec2[0] ];
+		invert = 1/vec0[0];
+		vc0 = [ 1.0, vec0[1]*invert, vec0[2]*invert, vec0[3]*invert ];
+		//vc1 = [ vec1[0]-vc0[0]*vec1[0], vec1[1]-vc0[1]*vec1[0], vec1[2]-vc0[2]*vec1[0], vec1[3]-vc0[3]*vec1[0] ];
+		vc1 = [ 0.0, vec1[1]-vc0[1]*vec1[0], vec1[2]-vc0[2]*vec1[0], vec1[3]-vc0[3]*vec1[0] ];
+		//vc2 = [ vec2[0]-vc0[0]*vec2[0], vec2[1]-vc0[1]*vec2[0], vec2[2]-vc0[2]*vec2[0], vec2[3]-vc0[3]*vec2[0] ];
+		vc2 = [ 0.0, vec2[1]-vc0[1]*vec2[0], vec2[2]-vc0[2]*vec2[0], vec2[3]-vc0[3]*vec2[0] ];
 		
-		// Y=0.0 の例外処理
-		if( vc1[1] == 0.0 ){
-			if( vc1[2] == 0.0 ){
-				nor4D[3] = 1.0;
+		// Y係数=0.0 の例外処理
+		if( fDWL.isZero(vc1[1]) ){
+			if( vc2[1] != 0.0 ){	// 一致判定関数が必要
+				// 再ピボット
+				let tmp = [ vc2[0],vc2[1],vc2[2],vc2[3] ];
+				vc2 = [ vc1[0],vc1[1],vc1[2],vc1[3] ];
+				vc1 = [ tmp[0],tmp[1],tmp[2],tmp[3] ];
 			}else{
-				nor4D[2] = 1.0;
+				// x + by = 0
+				if( vc0[1] != 0.0 ){
+					nor4D[0] =1.0;
+					nor4D[1] = -1/vc0[1];
+				}else{
+					nor4D[1] = 1.0;
+				}
+				break;
 			}
+		}
+		// 特殊事例
+		if((fDWL.isZero(vc1[2]))&&(fDWL.isZero(vc1[3]))){
+			let tmpNor = fDWL.outProd( [ vc0[0], vc0[2], vc0[3] ], [ vc2[0], vc2[2], vc2[3] ] );
+			nor4D = [ tmpNor[0], 0.0, tmpNor[1], tmpNor[2] ];
 			break;
 		}
 		
 		// Y座標を処理( vec[1].y = 1.0, vec[0].y = vec[2].y = 0.0 )
-		vec1 = [ vc1[0]/vc1[1], 1.0, vc1[2]/vc1[1], vc1[2]/vc1[1] ];
-		vec0 = [ vc0[0]-vec1[0]*vc0[1], vc0[1]-vec1[1]*vc0[1], vc0[2]-vec1[2]*vc0[1], vc0[3]-vec1[3]*vc0[1] ];
-		vec2 = [ vc2[0]-vec1[0]*vc2[1], vc2[1]-vec1[1]*vc2[1], vc2[2]-vec1[2]*vc2[1], vc2[3]-vec1[3]*vc2[1] ];
+		invert = 1/vc1[1];
+		//vec1 = [ vc1[0]*invert, 1.0, vc1[2]*invert, vc1[2]*invert ];
+		vec1 = [ 0.0, 1.0, vc1[2]*invert, vc1[3]*invert ];
+		//vec0 = [ vc0[0]-vec1[0]*vc0[1], vc0[1]-vec1[1]*vc0[1], vc0[2]-vec1[2]*vc0[1], vc0[3]-vec1[3]*vc0[1] ];
+		vec0 = [ 1.0, 0.0, vc0[2]-vec1[2]*vc0[1], vc0[3]-vec1[3]*vc0[1] ];
+		//vec2 = [ vc2[0]-vec1[0]*vc2[1], vc2[1]-vec1[1]*vc2[1], vc2[2]-vec1[2]*vc2[1], vc2[3]-vec1[3]*vc2[1] ];
+		vec2 = [ 0.0, 0.0, vc2[2]-vec1[2]*vc2[1], vc2[3]-vec1[3]*vc2[1] ];
 		
-		// Z=0.0 の例外処理
-		if( vec2[2] == 0.0 ){
-			nor4D[3] =1.0;
+		// Z係数=0.0 の例外処理
+		if( fDWL.isZero(vec2[2]) ){
+			let tmpNor = fDWL.outProd( [ vec0[0], vec0[1], vec0[2] ], [ vec1[0], vec1[1], vec1[2] ] );
+			nor4D = [tmpNor[0], tmpNor[1], tmpNor[2], 0.0 ];
+			break;
+		}
+		// H係数=0.0 の例外処理
+		if( fDWL.isZero(vec2[3]) ){
+			let tmpNor = fDWL.outProd( [ vec0[0], vec0[1], vec0[3] ], [ vec1[0], vec1[1], vec1[3] ] );
+			nor4D = [ tmpNor[0], tmpNor[1], 0.0, tmpNor[2] ];
 			break;
 		}
 		
 		// Z座標を処理( vec[2].z = 1.0, vec[0].z = vec[1].z = 0.0 )
-		vc2 = [ vec2[0]/vec2[2], vec2[1]/vec2[2], 1.0, vec2[3]/vec2[2] ];
-		vc0 = [ vec0[0]-vc2[0]*vec0[2], vec0[1]-vc2[1]*vec0[2], vec0[2]-vc2[2]*vec0[2], vec0[3]-vc2[3]*vec0[2] ];
-		vc1 = [ vec1[0]-vc2[0]*vec1[2], vec1[1]-vc2[1]*vec1[2], vec1[2]-vc2[2]*vec1[2], vec1[3]-vc2[3]*vec1[2] ];
+		// vc2 = [ vec2[0]/vec2[2], vec2[1]/vec2[2], 1.0, vec2[3]/vec2[2] ];
+		vc2 = [ 0.0, 0.0, 1.0, vec2[3]/vec2[2] ];
+		// vc0 = [ vec0[0]-vc2[0]*vec0[2], vec0[1]-vc2[1]*vec0[2], vec0[2]-vc2[2]*vec0[2], vec0[3]-vc2[3]*vec0[2] ];
+		vc0 = [ 1.0, 0.0, 0.0, vec0[3]-vc2[3]*vec0[2] ];
+		// vc1 = [ vec1[0]-vc2[0]*vec1[2], vec1[1]-vc2[1]*vec1[2], vec1[2]-vc2[2]*vec1[2], vec1[3]-vc2[3]*vec1[2] ];
+		vc1 = [ 0.0, 1.0, 0.0, vec1[3]-vc2[3]*vec1[2] ];
 		
 		// 方向ベクトルを得る
 		if( vc0[3] ){
-			nor4D[0] = vc0[0]/vc0[3];
-		}else{
-			nor4D[0] = 0;
+			nor4D[0] = -1.0/vc0[3];
 		}
 		if( vc1[3] ){
-			nor4D[1] = vc1[1]/vc1[3];
-		}else{
-			nor4D[1] = 0;
+			nor4D[1] = -1.0/vc1[3];
 		}
-		if( vc1[3] ){
-			nor4D[2] = vc2[2]/vc2[3];
-		}else{
-			nor4D[2] = 0;
+		if( vc2[3] ){
+			nor4D[2] = -1.0/vc2[3];
 		}
-		nor4D[3] = 1;
-		
+		nor4D[3] = 1.0;
 		break;
+	}
+	// サイズ調整
+	nor4D = fDWL.normalize4( nor4D );
+	for( let cnt = 0; cnt < 4; ++cnt ){
+		if( fDWL.isZero( nor4D[cnt] )){
+			nor4D[cnt] = 0.0;
+		}
 	}
 	
 	// 後処理：正負の方向を定める
@@ -539,6 +569,7 @@ fDWL.R4D.Pylams4D = function( gl, prg, pos, rotate, scale, vertex, color, center
 	this.center = fDWL.R4D.affine4D( center, rot, offs, scale );
 	this.centerIndex = centIdx;
 	
+	/**
 	// 中心配列の生成
 	this.centers = [];
 	for( let idx = 0; idx < chrnIdx.length; idx += 5 ){
@@ -546,10 +577,14 @@ fDWL.R4D.Pylams4D = function( gl, prg, pos, rotate, scale, vertex, color, center
 		center = fDWL.calcAve( 4, 5, vertex, vertIdx );
 		this.centers.push( center[0], center[1], center[2], center[3] );
 	}
+	/**/
 	// 体の法線の算出
+	this.centers = center;
 	this.fieldNormal = [];
 	for( let idx = 0; idx < index.length; idx += 4 ){
-		vId = idx*4;
+//		vId = idx*4;
+		vId = idx;
+		// 四面体
 		vert = [
 			vertex[index[vId  ]*4], vertex[index[vId  ]*4+1], vertex[index[vId  ]*4+2], vertex[index[vId  ]*4+3],
 			vertex[index[vId+1]*4], vertex[index[vId+1]*4+1], vertex[index[vId+1]*4+2], vertex[index[vId+1]*4+3],
@@ -598,7 +633,6 @@ fDWL.R4D.Pylams4D.prototype = {
 		for( let plmCnt = 0; plmCnt < maxPlmCnt; plmCnt++ ){	// 三角錐ごとにチェック
 			cnt = plmCnt*4;
 			
-			fldCnt = Math.floor( plmCnt/5 );
 			iPylamid = [ pylamArray[cnt], pylamArray[cnt+1], pylamArray[cnt+2], pylamArray[cnt+3] ];
 			cutType = this.getCutType( this.workVtx, iPylamid, hPos );
 			
@@ -905,13 +939,14 @@ fDWL.R4D.Pylams4D.prototype = {
 		"use strict";
 		const	p0 = cutType[1],		// 4 is sizeof( vertex )
 				p1 = cutType[2],
-				p2 = cutType[3];
+				p2 = cutType[3],
+				p3 = cutType[4];
 
 		this.setTriangle(
 			[ vtx[p0][0], vtx[p0][1], vtx[p0][2] ],
 			[ vtx[p1][0], vtx[p1][1], vtx[p1][2] ],
 			[ vtx[p2][0], vtx[p2][1], vtx[p2][2] ],
-			nrm4,
+			fDWL.getDirectVec( vtx[p0], vtx[p1], vtx[p2], vtx[p3] ),
 			clrVec
 		);
 	},
@@ -922,7 +957,7 @@ fDWL.R4D.Pylams4D.prototype = {
 				p1 = cutType[2],
 				p2 = cutType[3],
 				p3 = cutType[4];
-		let lerpedCol;
+		let lerpedCol = [];
 
 		lerpedCol = [
 			clrVec[ 0], clrVec[ 1], clrVec[ 2], clrVec[ 3],
@@ -933,7 +968,7 @@ fDWL.R4D.Pylams4D.prototype = {
 			[ vtx[p0][0], vtx[p0][1], vtx[p0][2] ],
 			[ vtx[p1][0], vtx[p1][1], vtx[p1][2] ],
 			[ vtx[p2][0], vtx[p2][1], vtx[p2][2] ],
-			nrm4,
+			fDWL.getDirectVec( vtx[p0], vtx[p1], vtx[p2], vtx[p3] ),
 			lerpedCol
 		);
 		lerpedCol = [
@@ -945,7 +980,7 @@ fDWL.R4D.Pylams4D.prototype = {
 			[ vtx[p1][0], vtx[p1][1], vtx[p1][2] ],
 			[ vtx[p2][0], vtx[p2][1], vtx[p2][2] ],
 			[ vtx[p3][0], vtx[p3][1], vtx[p3][2] ],
-			nrm4,
+			fDWL.getDirectVec( vtx[p1], vtx[p2], vtx[p3], vtx[p0] ),
 			lerpedCol
 		);
 		lerpedCol = [
@@ -957,7 +992,7 @@ fDWL.R4D.Pylams4D.prototype = {
 			[ vtx[p2][0], vtx[p2][1], vtx[p2][2] ],
 			[ vtx[p3][0], vtx[p3][1], vtx[p3][2] ],
 			[ vtx[p0][0], vtx[p0][1], vtx[p0][2] ],
-			nrm4,
+			fDWL.getDirectVec( vtx[p2], vtx[p3], vtx[p0], vtx[p1] ),
 			lerpedCol
 		);
 		lerpedCol = [
@@ -969,7 +1004,7 @@ fDWL.R4D.Pylams4D.prototype = {
 			[ vtx[p3][0], vtx[p3][1], vtx[p3][2] ],
 			[ vtx[p0][0], vtx[p0][1], vtx[p0][2] ],
 			[ vtx[p1][0], vtx[p1][1], vtx[p1][2] ],
-			nrm4,
+			fDWL.getDirectVec( vtx[p3], vtx[p0], vtx[p1], vtx[p2] ),
 			lerpedCol
 		);
 	},
@@ -984,30 +1019,12 @@ fDWL.R4D.Pylams4D.prototype = {
 			vtx1 = [],
 			vtx2 = [];
 		
-		// centerからの方向と比較、逆なら反転させる
-		var cVec = [
-			v0[0]-nrm4[0], v0[1]-nrm4[1], v0[2]-nrm4[2], 
-		];
-		cVec = fDWL.normalize3( cVec );
-		const det = nrm[0]*cVec[0] + nrm[1]*cVec[1] + nrm[2]*cVec[2];
-/*
 		// ４次法線との方向を確認、逆なら反転させる
-		nrm = fDWL.normalize3( nrm );
-		det = nrm[0]*nrm4[0] + nrm[1]*nrm4[1] + nrm[2]*nrm4[2];
-/**/
+		let det = nrm[0]*nrm4[0] + nrm[1]*nrm4[1] + nrm[2]*nrm4[2];
 		if( det < 0 ){
 			nrm[0] = -nrm[0];
 			nrm[1] = -nrm[1];
 			nrm[2] = -nrm[2];
-			let tmp = v0[0];
-			v0[0] = v1[0];
-			v1[0] = tmp;
-			tmp = v0[1];
-			v0[1] = v1[1];
-			v1[1] = tmp;
-			tmp = v0[2];
-			v0[2] = v1[2];
-			v1[2] = tmp;
 		}
 		
 		vtx0 = [ v0[0], v0[1], v0[2], nrm[0],nrm[1],nrm[2], clrVec[0],clrVec[1],clrVec[2],clrVec[3] ];
@@ -1035,7 +1052,7 @@ fDWL.R4D.Pylams4D.prototype = {
 	// 平面法線を取得
 	getNormalPlane: function( cnt ){
 		"use strict";
-		return this.workNrm[ Math.floor( cnt/5 ) ];
+		return this.workNrm[ cnt ];
 	},
 	// 頂点法線用中心点を取得
 	getNormalVertex: function( cnt ){
@@ -1315,7 +1332,35 @@ fDWL.addAngle = function( src0, src1 ){
 	return dst;
 };
 
+//------------------------------------------------------------------
+// 方向ベクトルを算出
+//------------------------------------------------------------------
+fDWL.getDirectVec = function( v0, v1, v2, v4 ){
+	"use strict";
+	return[
+		(v0[0]+v1[0]+v2[0])/3 - v4[0],
+		(v0[1]+v1[1]+v2[1])/3 - v4[1],
+		(v0[2]+v1[2]+v2[2])/3 - v4[2]
+	];
+};
 
+//------------------------------------------------------------------
+// ２数が同じであるか判定
+//------------------------------------------------------------------
+fDWL.isEqual = function( num0, num1 ){
+	"use strict";
+
+	return (Math.abs(num0-num1) < Number.EPSILON);
+};
+
+//------------------------------------------------------------------
+// 数が0.0と同等であるか判定
+//------------------------------------------------------------------
+fDWL.isZero = function( num ){
+	"use strict";
+
+	return ((-Number.EPSILON <num)&&(num < Number.EPSILON));
+};
 
 //==================================================================
 // Obj3D
